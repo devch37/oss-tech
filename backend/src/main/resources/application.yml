@@ -1,0 +1,55 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: oss-tech-backend
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/osstech}
+    username: ${DB_USERNAME:osstech}
+    password: ${DB_PASSWORD:osstech}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Flyway가 스키마 관리, Hibernate는 검증만
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+# ─── WebClient 설정 (커스텀 프로퍼티) ─────────────────────
+webclient:
+  timeout:
+    connect-ms: ${WEBCLIENT_CONNECT_TIMEOUT_MS:5000}
+    read-ms: ${WEBCLIENT_READ_TIMEOUT_MS:30000}
+  github:
+    base-url: ${GITHUB_API_BASE_URL:https://api.github.com}
+    token: ${GITHUB_TOKEN:}
+  claude:
+    base-url: ${CLAUDE_API_BASE_URL:https://api.anthropic.com}
+    api-key: ${CLAUDE_API_KEY:}
+    model: ${CLAUDE_MODEL:claude-sonnet-4-6}
+
+# ─── Swagger / SpringDoc ──────────────────────────────────
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+# ─── 로깅 ─────────────────────────────────────────────────
+logging:
+  level:
+    com.oss.techradar: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG

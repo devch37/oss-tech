@@ -1,0 +1,74 @@
+services:
+
+  # ─── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: oss-tech-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-osstech}
+      POSTGRES_USER: ${POSTGRES_USER:-osstech}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-osstech_secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-osstech} -d ${POSTGRES_DB:-osstech}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ─── Backend (Kotlin + Spring Boot) ───────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: oss-tech-backend
+    env_file:
+      - .env
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-osstech}
+      DB_USERNAME: ${POSTGRES_USER:-osstech}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-osstech_secret}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_API_BASE_URL: ${GITHUB_API_BASE_URL:-https://api.github.com}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-6}
+      CLAUDE_API_BASE_URL: ${CLAUDE_API_BASE_URL:-https://api.anthropic.com}
+      WEBCLIENT_CONNECT_TIMEOUT_MS: ${WEBCLIENT_CONNECT_TIMEOUT_MS:-5000}
+      WEBCLIENT_READ_TIMEOUT_MS: ${WEBCLIENT_READ_TIMEOUT_MS:-30000}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Frontend (Next.js 14) ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # 빌드 타임에 번들에 인라인되는 외부 URL (브라우저 → 백엔드 직접 호출 시)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    container_name: oss-tech-frontend
+    env_file:
+      - .env
+    environment:
+      # 서버 컴포넌트 fetch: 컨테이너 내부 통신 (Next.js rewrite 경유 안 함)
+      INTERNAL_API_URL: http://backend:8080
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
