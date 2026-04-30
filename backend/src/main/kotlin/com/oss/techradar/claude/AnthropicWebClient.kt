@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.springframework.web.reactive.function.client.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 

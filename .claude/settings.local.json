@@ -5,7 +5,10 @@
       "Bash(npx tsc:*)",
       "Bash(ls /Users/chulhanlee/Desktop/workspace/my-project/oss-tech/frontend/postcss.config* /Users/chulhanlee/Desktop/workspace/my-project/oss-tech/frontend/tailwind.config*)",
       "Bash(gradle --version)",
-      "Bash(gradle wrapper:*)"
+      "Bash(gradle wrapper:*)",
+      "Bash(npm run:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(ls /Users/chulhanlee/Desktop/workspace/my-project/oss-tech/frontend/next.config*)"
     ]
   }
 }

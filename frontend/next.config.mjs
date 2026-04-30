@@ -1,6 +1,8 @@
-import type { NextConfig } from "next";
+// import type {NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+
+const nextConfig = {
   // Docker 최적화: standalone 모드로 최소 런타임만 포함
   output: 'standalone',
 
