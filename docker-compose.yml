@@ -5,7 +5,8 @@ services:
     image: postgres:16-alpine
     container_name: oss-tech-postgres
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-osstech}
       POSTGRES_USER: ${POSTGRES_USER:-osstech}
@@ -29,7 +30,8 @@ services:
       dockerfile: Dockerfile
     container_name: oss-tech-backend
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       SERVER_PORT: ${SERVER_PORT:-8080}
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-osstech}
@@ -59,7 +61,8 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     container_name: oss-tech-frontend
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       # 서버 컴포넌트 fetch: 컨테이너 내부 통신 (Next.js rewrite 경유 안 함)
       INTERNAL_API_URL: http://backend:8080

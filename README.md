@@ -72,11 +72,12 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`
 
 ### 사전 요구사항
 
-- Docker Desktop 4.x 이상
-- GitHub Personal Access Token (repo 읽기 권한)
-- Anthropic API Key
+- Docker Desktop 4.x 이상 (그 외 로컬 설치 불필요 — JDK/Gradle/Node/PostgreSQL 전부 컨테이너에서 실행됨)
 
-### 1. 환경 변수 설정
+### 1. (선택) 환경 변수 설정
+
+`.env` 파일 없이도 `docker compose up`만으로 DB 포함 전체 스택이 기본값으로 바로 기동됩니다.
+GitHub 크롤링, Claude 리포트 생성 등 외부 API를 쓰려면 아래처럼 `.env`를 설정하세요.
 
 ```bash
 cp .env.example .env
