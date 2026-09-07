@@ -1,8 +1,13 @@
 package com.oss.techradar.api
 
 import com.oss.techradar.common.ApiResponse
+import com.oss.techradar.crawler.CrawlerService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
@@ -14,9 +19,12 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "Crawl", description = "GitHub 크롤링 수동 트리거 (개발/테스트용)")
 @RestController
 @RequestMapping("/api/v1/crawl")
-class CrawlController {
+class CrawlController(
+    private val crawlerService: CrawlerService,
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
+    private val crawlScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Operation(
         summary = "크롤링 수동 트리거",
@@ -29,8 +37,10 @@ class CrawlController {
     ): ApiResponse<CrawlTriggerResponse> {
         log.info("수동 크롤링 트리거 요청: domain=$domain")
 
-        // TODO: GitHubApiClient 구현 완료 후 CrawlerService.crawlDomain(domain) 연동
-        // crawlScope.launch { crawlerService.crawlDomain(domain) }
+        crawlScope.launch {
+            runCatching { crawlerService.crawlDomain(domain) }
+                .onFailure { log.error("[$domain] 수동 크롤링 실패", it) }
+        }
 
         return ApiResponse.ok(
             CrawlTriggerResponse(

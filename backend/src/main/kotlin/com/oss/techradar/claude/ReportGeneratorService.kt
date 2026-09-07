@@ -2,6 +2,7 @@ package com.oss.techradar.claude
 
 import com.oss.techradar.claude.dto.ClaudeRequest
 import com.oss.techradar.config.WebClientProperties
+import com.oss.techradar.crawler.CrawlDomains
 import com.oss.techradar.domain.LibraryUsage
 import com.oss.techradar.domain.MonthlyReport
 import com.oss.techradar.repository.LibraryUsageRepository
@@ -134,7 +135,8 @@ class ReportGeneratorService(
     }
 
     companion object {
-        val DEFAULT_DOMAINS = listOf("fastapi", "nextjs", "spring-boot", "react", "vue")
+        // 크롤러가 수집하는 도메인(frontend/backend/devops/mobile/data/security)과 동일하게 유지
+        val DEFAULT_DOMAINS = CrawlDomains.TOPIC_BY_DOMAIN.keys.toList()
 
         private val SYSTEM_PROMPT = """
             당신은 10년 경력의 시니어 백엔드 개발자입니다.

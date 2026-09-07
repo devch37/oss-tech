@@ -165,6 +165,12 @@ docker compose down -v
 
 | 스케줄 | 작업 |
 |--------|------|
+| 매일 03:00 KST | 전 도메인 GitHub 크롤링 (레포 수집 + Active Level 계산 + 의존성 파싱) |
 | 매월 1일 09:00 KST | 전 도메인 AI 월간 리포트 자동 생성 |
 
-수동 생성: `POST /api/v1/reports/generate?domain=frontend&yearMonth=2026-04`
+수동 크롤링: `POST /api/v1/crawl/trigger?domain=frontend`
+수동 리포트 생성: `POST /api/v1/reports/generate?domain=frontend&yearMonth=2026-04`
+
+### 크롤링 도메인
+
+`frontend`, `backend`, `devops`, `mobile`, `data`, `security` 6개 도메인을 각각 동일한 이름의 GitHub topic(`data`→`data-science`)으로 검색해 상위 30개 레포지토리를 수집합니다.
