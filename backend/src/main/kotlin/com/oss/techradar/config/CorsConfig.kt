@@ -10,7 +10,8 @@ class CorsConfig : WebMvcConfigurer {
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/api/**")
             .allowedOrigins(
-                "http://localhost:3000",   // Next.js 개발 서버
+                "http://localhost:3000",   // Next.js 개발 서버 (npm run dev)
+                "http://localhost:3033",   // Docker Compose 호스트 매핑
                 "http://frontend:3000",    // Docker Compose 내부
             )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
