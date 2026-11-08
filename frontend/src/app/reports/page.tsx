@@ -1,180 +1,139 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FileText, Calendar, Clock } from 'lucide-react';
-import { getDomains, getReport, getReports } from '@/lib/api-client';
-import { formatMonth, formatDateTime } from '@/lib/utils';
-import { ErrorCard } from '@/components/ErrorBoundary';
+import { ArrowUpRight, Clock, FileText } from 'lucide-react';
+import { getReport, getReports } from '@/lib/api-client';
+import { resolveDomain, resolveMonth } from '@/lib/server';
+import { DOMAINS, getDomainMeta } from '@/lib/domains';
+import { cn, formatMonth, formatRelative } from '@/lib/utils';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
+import { GenerateReportButton } from '@/components/ActionButtons';
 import type { ReportMeta } from '@/types/api';
 
-// ─── Preview extractor ────────────────────────────────────────────────────────
+export const metadata: Metadata = { title: 'AI 월간 리포트' };
 
-function extractPreview(markdown: string, maxLength = 180): string {
+function extractPreview(markdown: string, maxLength = 160): string {
   const text = markdown
-    .replace(/^#{1,6}\s+.+$/gm, '')                 // 제목 제거
-    .replace(/!\[.*?\]\(.*?\)/g, '')                 // 이미지 제거
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')         // 링크 → 텍스트
-    .replace(/```[\s\S]*?```/g, '')                  // 코드 블록 제거
-    .replace(/`[^`]+`/g, '')                         // 인라인 코드 제거
-    .replace(/[*_~>|]/g, '')                         // 마크다운 기호 제거
-    .replace(/\n{2,}/g, '\n')                        // 빈 줄 정리
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/^#{1,6}\s+.+$/gm, '')
+    .replace(/^\s*\|.*$/gm, '')
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/[*_~>|#]/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
-
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).replace(/\s\S*$/, '') + '…';
 }
 
-// ─── Domain color palette ─────────────────────────────────────────────────────
-
-const DOMAIN_COLORS: Record<string, string> = {
-  frontend: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  backend: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  devops: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  mobile: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  data: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
-  security: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-};
-
-function domainColor(domain: string): string {
-  return (
-    DOMAIN_COLORS[domain.toLowerCase()] ??
-    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-  );
-}
-
-// ─── Report Card ──────────────────────────────────────────────────────────────
-
-interface ReportCardData extends ReportMeta {
+interface CardData extends ReportMeta {
   preview: string | null;
 }
 
-function ReportCard({ report }: { report: ReportCardData }) {
+function ReportCard({ report, featured }: { report: CardData; featured?: boolean }) {
+  const meta = getDomainMeta(report.domain);
+  const Icon = meta.icon;
   return (
     <Link
       href={`/reports/${report.id}`}
-      className="group block rounded-xl border bg-card shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-200"
+      className={cn(
+        'group relative flex flex-col gap-3 overflow-hidden rounded-2xl border bg-card p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift',
+        featured && 'sm:col-span-2 sm:p-7',
+      )}
     >
-      <div className="p-6 space-y-3">
-        {/* 도메인 배지 + 월 */}
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${domainColor(report.domain)}`}
-          >
-            {report.domain}
-          </span>
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            {formatMonth(report.reportMonth)}
-          </span>
-        </div>
-
-        {/* 리포트 제목 */}
-        <h3 className="font-semibold text-base leading-tight group-hover:text-primary transition-colors line-clamp-2">
-          {formatMonth(report.reportMonth)} {report.domain} 도메인 AI 트렌드 리포트
-        </h3>
-
-        {/* 미리보기 텍스트 */}
-        {report.preview ? (
-          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-            {report.preview}
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground/60 italic">미리보기를 불러오지 못했습니다.</p>
-        )}
-
-        {/* 생성 시각 */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1 border-t border-border/50">
-          <Clock className="h-3 w-3" />
-          {formatDateTime(report.generatedAt)}
-        </div>
+      {featured && (
+        <div className={cn('pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gradient-to-br opacity-15 blur-3xl', meta.gradient)} />
+      )}
+      <div className="relative flex items-center justify-between gap-2">
+        <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset', meta.badge)}>
+          <Icon className="h-3.5 w-3.5" />
+          {meta.label}
+        </span>
+        <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
       </div>
+      <h3 className={cn('relative font-semibold leading-snug group-hover:text-primary', featured ? 'text-xl sm:text-2xl' : 'text-base')}>
+        {formatMonth(report.reportMonth)} {meta.label} 트렌드 리포트
+      </h3>
+      {report.preview && (
+        <p className={cn('relative text-sm leading-relaxed text-muted-foreground', featured ? 'line-clamp-3' : 'line-clamp-2')}>
+          {report.preview}
+        </p>
+      )}
+      <p className="relative mt-auto flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+        <Clock className="h-3 w-3" />
+        {formatRelative(report.generatedAt)} 발행
+      </p>
     </Link>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: { domain?: string; scope?: string };
+}) {
+  const domain = resolveDomain(searchParams.domain);
+  const meta = getDomainMeta(domain);
+  const showAll = searchParams.scope === 'all';
 
-export default async function ReportsPage() {
-  // 1. 전체 도메인 조회
-  const domains = await getDomains().catch(() => []);
-
-  if (domains.length === 0) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">월간 AI 리포트</h1>
-        <ErrorCard message="도메인 정보를 불러오지 못했습니다." />
-      </div>
-    );
-  }
-
-  // 2. 모든 도메인의 리포트 메타 병렬 조회
-  const allMetasResults = await Promise.allSettled(
-    domains.map((d) => getReports(d.domain)),
-  );
-
-  const allMetas: ReportMeta[] = allMetasResults
+  const targets = showAll ? DOMAINS.map((d) => d.value) : [domain];
+  const metaResults = await Promise.allSettled(targets.map((d) => getReports(d)));
+  const metas = metaResults
     .flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
-    .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
+    .sort((a, b) => b.reportMonth.localeCompare(a.reportMonth) || b.generatedAt.localeCompare(a.generatedAt));
 
-  // 3. 최신 12개 리포트 내용 조회 (미리보기 추출용)
-  const recentMetas = allMetas.slice(0, 12);
-  const contentResults = await Promise.allSettled(
-    recentMetas.map((meta) => getReport(meta.id)),
-  );
-
-  const reportCards: ReportCardData[] = recentMetas.map((meta, i) => {
-    const result = contentResults[i];
-    const content = result?.status === 'fulfilled' ? result.value.content : null;
-    return {
-      ...meta,
-      preview: content ? extractPreview(content) : null,
-    };
+  const withPreview = metas.slice(0, 9);
+  const contents = await Promise.allSettled(withPreview.map((m) => getReport(m.id)));
+  const cards: CardData[] = metas.map((m, i) => {
+    const c = i < contents.length ? contents[i] : undefined;
+    return { ...m, preview: c?.status === 'fulfilled' ? extractPreview(c.value.content) : null };
   });
 
-  // 도메인별 그룹핑
-  const grouped = reportCards.reduce<Record<string, ReportCardData[]>>((acc, r) => {
-    if (!acc[r.domain]) acc[r.domain] = [];
-    acc[r.domain]!.push(r);
-    return acc;
-  }, {});
+  const { month } = showAll ? { month: '' } : await resolveMonth(domain);
+
+  const tabClass = (active: boolean) =>
+    cn(
+      'rounded-lg px-3 py-1.5 text-[13px] font-medium transition-all',
+      active ? 'bg-card text-foreground shadow-sm ring-1 ring-border' : 'text-muted-foreground hover:text-foreground',
+    );
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <FileText className="h-6 w-6" />
-          월간 AI 리포트
-        </h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Claude AI가 생성한 도메인별 월간 OSS 트렌드 분석 리포트
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={<span>Claude AI 분석</span>}
+        title="AI 월간 리포트"
+        description="한 달간 쌓인 데이터를 Claude AI 가 읽고, 무엇이 뜨고 왜 중요한지 사람이 읽기 쉬운 글로 정리했어요. 매월 1일 자동 발행돼요."
+        actions={
+          <div className="inline-flex rounded-xl border bg-muted/50 p-1">
+            <Link href={`/reports?domain=${domain}`} className={tabClass(!showAll)}>
+              {meta.label}
+            </Link>
+            <Link href={`/reports?domain=${domain}&scope=all`} className={tabClass(showAll)}>
+              모든 분야
+            </Link>
+          </div>
+        }
+      />
 
-      {reportCards.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-          <FileText className="h-12 w-12 opacity-30" />
-          <p className="text-sm">아직 생성된 리포트가 없습니다.</p>
-        </div>
+      {cards.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title={showAll ? '아직 발행된 리포트가 없어요' : `${meta.label} 분야 리포트가 아직 없어요`}
+          description={
+            showAll
+              ? '분야를 선택한 뒤 리포트를 직접 만들어 볼 수 있어요.'
+              : `${formatMonth(month)} 수집 데이터를 바탕으로 지금 바로 만들 수 있어요. (서버에 CLAUDE_API_KEY 가 필요해요)`
+          }
+          action={!showAll ? <GenerateReportButton domain={domain} yearMonth={month} /> : undefined}
+        />
       ) : (
-        /* 도메인별 섹션 */
-        Object.entries(grouped).map(([domain, reports]) => (
-          <section key={domain} className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span
-                className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold capitalize ${domainColor(domain)}`}
-              >
-                {domain}
-              </span>
-              <span className="text-sm text-muted-foreground">{reports.length}개 리포트</span>
-              <div className="flex-1 border-t border-border" />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {reports.map((report) => (
-                <ReportCard key={report.id} report={report} />
-              ))}
-            </div>
-          </section>
-        ))
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {cards.map((r, i) => (
+            <ReportCard key={r.id} report={r} featured={i === 0} />
+          ))}
+        </div>
       )}
     </div>
   );

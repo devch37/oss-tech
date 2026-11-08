@@ -37,10 +37,24 @@ class LibraryController(
             .getOrElse { throw IllegalArgumentException("잘못된 month 형식: '$month'. YYYY-MM 형식으로 입력해주세요.") }
 
         val items = libraryUsageRepository
-            .findRankByDomainAndMonth(domain, yearMonth.atDay(1), PageRequest.of(page, size))
+            .findRankByDomainAndMonth(domain, yearMonth, PageRequest.of(page, size))
             .map { LibraryRankDto.from(it) }
 
         return ApiResponse.ok(PagedResult(content = items, page = page, size = size))
+    }
+
+    @Operation(
+        summary = "데이터가 있는 월 목록 조회",
+        description = "도메인에 라이브러리 집계 데이터가 존재하는 월(YYYY-MM)을 최신순으로 반환합니다.",
+    )
+    @GetMapping("/months")
+    fun getAvailableMonths(
+        @RequestParam domain: String,
+    ): ApiResponse<List<String>> {
+        val months = libraryUsageRepository
+            .findAvailableMonthsByDomain(domain)
+            .map { it.toString() }
+        return ApiResponse.ok(months)
     }
 
     @Operation(

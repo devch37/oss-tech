@@ -1,56 +1,64 @@
-import { getLibraries } from '@/lib/api-client';
-import { formatMonth } from '@/lib/utils';
-import { LibraryListClient } from './LibraryListClient';
+import type { Metadata } from 'next';
+import { Database } from 'lucide-react';
+import { getDomains, getLibraries } from '@/lib/api-client';
+import { resolveDomain, resolveMonth } from '@/lib/server';
+import { getDomainMeta } from '@/lib/domains';
+import { formatMonth, formatNumber } from '@/lib/utils';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
+import { CrawlButton } from '@/components/ActionButtons';
+import { ErrorCard } from '@/components/ErrorBoundary';
+import { LibraryExplorer } from './LibraryExplorer';
 
-// ─── Month helpers ────────────────────────────────────────────────────────────
-
-function currentYearMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
-function getLast6Months(): { value: string; label: string }[] {
-  const now = new Date();
-  return Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    return { value, label: formatMonth(value) };
-  });
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+export const metadata: Metadata = { title: '라이브러리 랭킹' };
 
 export default async function LibrariesPage({
   searchParams,
 }: {
   searchParams: { domain?: string; month?: string };
 }) {
-  const domain = searchParams.domain ?? 'frontend';
-  const months = getLast6Months();
-  const defaultMonth = months[0]?.value ?? currentYearMonth();
-  const month = months.some((m) => m.value === searchParams.month)
-    ? (searchParams.month as string)
-    : defaultMonth;
+  const domain = resolveDomain(searchParams.domain);
+  const meta = getDomainMeta(domain);
+  const { month, months, hasData } = await resolveMonth(domain, searchParams.month);
 
-  // 클라이언트 필터링을 위해 한 번에 넉넉히 fetch (100개)
-  const librariesData = await getLibraries({ domain, month, size: 100 }).catch(() => null);
+  const [libsRes, domains] = await Promise.all([
+    hasData ? getLibraries({ domain, month, size: 500 }).catch(() => null) : Promise.resolve(null),
+    getDomains().catch(() => []),
+  ]);
+  const repoCount = Number(domains.find((d) => d.domain === domain)?.repositoryCount ?? 0);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">라이브러리 순위</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          <span className="font-medium capitalize">{domain}</span> 도메인 · 월별 라이브러리 사용 현황
-        </p>
-      </div>
-
-      <LibraryListClient
-        libraries={librariesData?.content ?? []}
-        months={months}
-        currentMonth={month}
-        domain={domain}
-        fetchFailed={librariesData === null}
+      <PageHeader
+        eyebrow={<span>{meta.label} · {formatMonth(month)}</span>}
+        title="라이브러리 랭킹"
+        description={
+          <>
+            {meta.label} 분야 인기 프로젝트 <b className="text-foreground">{formatNumber(repoCount)}개</b>가 실제로
+            사용하는 라이브러리를 집계했어요. 많이 쓰일수록 위에, 빠르게 늘어날수록 🔥 표시가 붙어요.
+          </>
+        }
       />
+
+      {!hasData ? (
+        <EmptyState
+          icon={Database}
+          title="아직 집계된 라이브러리가 없어요"
+          description="프로젝트 수집이 끝나면 라이브러리 랭킹이 자동으로 만들어져요."
+          action={<CrawlButton domain={domain} />}
+        />
+      ) : libsRes === null ? (
+        <ErrorCard message="라이브러리 데이터를 불러오지 못했어요." />
+      ) : (
+        <LibraryExplorer
+          key={`${domain}-${month}`}
+          libraries={libsRes.content}
+          months={months}
+          month={month}
+          domain={domain}
+          repoCount={repoCount}
+        />
+      )}
     </div>
   );
 }

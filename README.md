@@ -15,6 +15,8 @@ GitHub OSS 트렌드를 자동 수집·분석하고, Claude AI로 월간 리포�
 └─────────────────────────────────────────────────────┘
 ```
 
+> 화면별 기능 명세와 용어 정의는 [`docs/FEATURE_SPEC.md`](docs/FEATURE_SPEC.md) 참고.
+
 ## 기술 스택
 
 | 레이어 | 기술 |
@@ -60,6 +62,7 @@ oss-tech/
 | GET | `/api/v1/domains` | 도메인별 레포지토리 수 |
 | GET | `/api/v1/repositories` | 레포지토리 목록 (score/stars 정렬) |
 | GET | `/api/v1/libraries` | 라이브러리 순위 (도메인·월 기준) |
+| GET | `/api/v1/libraries/months` | 데이터가 있는 월 목록 (최신순) |
 | GET | `/api/v1/libraries/{name}/trend` | 라이브러리 6개월 트렌드 |
 | GET | `/api/v1/reports` | AI 리포트 목록 (도메인별) |
 | GET | `/api/v1/reports/{id}` | AI 리포트 상세 (Markdown) |

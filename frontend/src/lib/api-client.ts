@@ -95,6 +95,14 @@ export async function getLibraries(params: {
   } as RequestInit);
 }
 
+/** GET /api/v1/libraries/months?domain= — 데이터가 있는 월 목록 (최신순) */
+export async function getLibraryMonths(domain: string): Promise<string[]> {
+  const query = buildQuery({ domain });
+  return apiFetch<string[]>(`/api/v1/libraries/months${query}`, {
+    next: { revalidate: 300 },
+  } as RequestInit);
+}
+
 /** GET /api/v1/libraries/{name}/trend?domain= */
 export async function getLibraryTrend(name: string, domain: string): Promise<LibraryTrend> {
   const query = buildQuery({ domain });

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -62,28 +62,23 @@ export function ErrorCard({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-center',
+        'flex flex-col items-center justify-center gap-3 rounded-2xl border border-danger/25 bg-danger/5 p-8 text-center',
         className,
       )}
     >
-      <AlertCircle className="h-8 w-8 text-destructive" />
-      <p className="text-sm text-destructive font-medium">{message}</p>
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10">
+        <AlertTriangle className="h-5 w-5 text-danger" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-foreground">{message}</p>
+        <p className="text-xs text-muted-foreground">백엔드 서버가 실행 중인지 확인해 주세요.</p>
+      </div>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
-          <RefreshCw className="mr-2 h-3.5 w-3.5" />
+          <RefreshCw className="h-3.5 w-3.5" />
           다시 시도
         </Button>
       )}
     </div>
-  );
-}
-
-/** 인라인 에러 (테이블 행 등 작은 영역) */
-export function InlineError({ message }: { message: string }) {
-  return (
-    <span className="flex items-center gap-1.5 text-xs text-destructive">
-      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-      {message}
-    </span>
   );
 }

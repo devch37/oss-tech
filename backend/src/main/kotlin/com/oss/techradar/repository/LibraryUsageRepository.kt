@@ -4,13 +4,13 @@ import com.oss.techradar.domain.LibraryUsage
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import java.time.LocalDate
+import java.time.YearMonth
 
 interface LibraryUsageRepository : JpaRepository<LibraryUsage, Long> {
 
     /**
      * 특정 도메인의 월별 라이브러리 순위 (usage_count DESC).
-     * YearMonthConverter가 collectedMonth를 LocalDate로 변환하므로 파라미터도 LocalDate 사용.
+     * 파라미터는 엔티티 필드와 같은 YearMonth 를 사용 (LocalDate 를 넘기면 QueryArgumentException).
      */
     @Query(
         """
@@ -21,7 +21,7 @@ interface LibraryUsageRepository : JpaRepository<LibraryUsage, Long> {
     )
     fun findRankByDomainAndMonth(
         domain: String,
-        collectedMonth: LocalDate,
+        collectedMonth: YearMonth,
         pageable: Pageable,
     ): List<LibraryUsage>
 
@@ -40,9 +40,22 @@ interface LibraryUsageRepository : JpaRepository<LibraryUsage, Long> {
         domain: String,
     ): List<LibraryUsage>
 
+    /**
+     * 도메인에 집계 데이터가 존재하는 월 목록 (최신순).
+     * 프론트엔드가 "데이터가 있는 가장 최근 월"을 기본값으로 쓰기 위해 사용한다.
+     */
+    @Query(
+        """
+        SELECT DISTINCT l.collectedMonth FROM LibraryUsage l
+        WHERE l.domain = :domain
+        ORDER BY l.collectedMonth DESC
+        """,
+    )
+    fun findAvailableMonthsByDomain(domain: String): List<YearMonth>
+
     fun findByDomainAndLibraryNameAndCollectedMonth(
         domain: String,
         libraryName: String,
-        collectedMonth: LocalDate,
+        collectedMonth: YearMonth,
     ): LibraryUsage?
 }

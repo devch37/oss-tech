@@ -16,7 +16,7 @@ export default function DashboardError({ error, reset }: ErrorPageProps) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-8">
       <ErrorCard
-        message={error.message || '대시보드 데이터를 불러오는 중 문제가 발생했습니다.'}
+        message={error.message || '화면을 불러오는 중 문제가 발생했어요.'}
         onRetry={reset}
         className="max-w-md w-full"
       />

@@ -33,13 +33,13 @@ export function ShareButton({ className }: ShareButtonProps) {
     <Button variant="outline" size="sm" onClick={handleCopy} className={className}>
       {copied ? (
         <>
-          <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-500" />
+          <Check className="h-3.5 w-3.5 text-success" />
           복사됨
         </>
       ) : (
         <>
-          <Share2 className="mr-1.5 h-3.5 w-3.5" />
-          URL 복사
+          <Share2 className="h-3.5 w-3.5" />
+          링크 복사
         </>
       )}
     </Button>

@@ -86,10 +86,10 @@ class ReportGeneratorServiceTest {
         )
 
         every {
-            monthlyReportRepository.findByDomainAndReportMonth(testDomain, testMonth.atDay(1))
+            monthlyReportRepository.findByDomainAndReportMonth(testDomain, testMonth)
         } returns null
         every {
-            libraryUsageRepository.findRankByDomainAndMonth(testDomain, testMonth.atDay(1), any())
+            libraryUsageRepository.findRankByDomainAndMonth(testDomain, testMonth, any())
         } returns libraries
         coEvery { anthropicWebClient.sendMessage(any()) } returns makeSuccessResponse("# 리포트 내용")
         every { monthlyReportRepository.save(any()) } returns savedReport
@@ -114,7 +114,7 @@ class ReportGeneratorServiceTest {
             generatedAt = LocalDateTime.now().minusDays(1),
         )
         every {
-            monthlyReportRepository.findByDomainAndReportMonth(testDomain, testMonth.atDay(1))
+            monthlyReportRepository.findByDomainAndReportMonth(testDomain, testMonth)
         } returns existing
 
         // when

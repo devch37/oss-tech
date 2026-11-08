@@ -1,151 +1,112 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Calendar, Clock, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Calendar, ChevronLeft, Clock, Sparkles } from 'lucide-react';
 import { getReport, getReports } from '@/lib/api-client';
-import { formatMonth, formatDateTime } from '@/lib/utils';
+import { getDomainMeta } from '@/lib/domains';
+import { cn, formatDateTime, formatMonth } from '@/lib/utils';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { ShareButton } from '@/components/ShareButton';
-import { Separator } from '@/components/ui/separator';
 import type { ReportMeta } from '@/types/api';
 
-// ─── Domain color ─────────────────────────────────────────────────────────────
+export const metadata: Metadata = { title: 'AI 리포트' };
 
-const DOMAIN_COLORS: Record<string, string> = {
-  frontend: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  backend: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  devops: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  mobile: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  data: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
-  security: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-};
-
-function domainColor(domain: string): string {
-  return (
-    DOMAIN_COLORS[domain.toLowerCase()] ??
-    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-  );
-}
-
-// ─── Prev / Next helper ───────────────────────────────────────────────────────
-
-function findAdjacentReports(
-  reports: ReportMeta[],
-  currentId: number,
-): { prev: ReportMeta | null; next: ReportMeta | null } {
-  // getReports → reportMonth DESC 정렬 (최신이 앞)
-  const idx = reports.findIndex((r) => r.id === currentId);
+function findAdjacent(reports: ReportMeta[], id: number) {
+  const idx = reports.findIndex((r) => r.id === id);
   if (idx === -1) return { prev: null, next: null };
   return {
-    next: idx > 0 ? (reports[idx - 1] ?? null) : null,    // 더 최신
-    prev: idx < reports.length - 1 ? (reports[idx + 1] ?? null) : null, // 더 오래된
+    next: idx > 0 ? (reports[idx - 1] ?? null) : null,
+    prev: idx < reports.length - 1 ? (reports[idx + 1] ?? null) : null,
   };
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+/** 한국어 기준 분당 ~500자 */
+function readingMinutes(md: string): number {
+  return Math.max(1, Math.round(md.replace(/\s+/g, '').length / 500));
+}
 
-export default async function ReportDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ReportDetailPage({ params }: { params: { id: string } }) {
   const id = Number(params.id);
   if (!Number.isFinite(id) || id <= 0) notFound();
 
-  // 현재 리포트 + 같은 도메인 리포트 목록 병렬 조회
   const report = await getReport(id).catch(() => null);
   if (!report) notFound();
 
-  const sameDomainReports = await getReports(report.domain).catch(() => []);
-  const { prev, next } = findAdjacentReports(sameDomainReports, id);
+  const meta = getDomainMeta(report.domain);
+  const Icon = meta.icon;
+  const siblings = await getReports(report.domain).catch(() => []);
+  const { prev, next } = findAdjacent(siblings, id);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      {/* ─── Back link ─────────────────────────────────────────────────────── */}
+    <div className="mx-auto max-w-3xl space-y-6">
       <Link
-        href="/reports"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        href={`/reports?domain=${report.domain}`}
+        className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:text-foreground"
       >
         <ChevronLeft className="h-3.5 w-3.5" />
-        리포트 목록으로
+        리포트 목록
       </Link>
 
-      {/* ─── Report Header ──────────────────────────────────────────────────── */}
-      <header className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${domainColor(report.domain)}`}
-          >
-            {report.domain}
-          </span>
-          <span className="text-xs text-muted-foreground">AI 월간 트렌드 리포트</span>
-        </div>
-
-        <h1 className="text-2xl font-bold tracking-tight">
-          {formatMonth(report.reportMonth)} {report.domain} 도메인 트렌드 분석
-        </h1>
-
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Calendar className="h-4 w-4" />
-            {formatMonth(report.reportMonth)}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4" />
-            생성: {formatDateTime(report.generatedAt)}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 pt-1">
+      <header className="relative animate-fade-up overflow-hidden rounded-3xl border bg-card p-6 shadow-soft sm:p-8">
+        <div className={cn('pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-gradient-to-br opacity-20 blur-3xl', meta.gradient)} />
+        <div className="relative space-y-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+            <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1 ring-inset', meta.badge)}>
+              <Icon className="h-3.5 w-3.5" />
+              {meta.label}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-muted-foreground">
+              <Sparkles className="h-3 w-3" /> Claude AI 작성
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            {formatMonth(report.reportMonth)} {meta.label} 트렌드 리포트
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" /> {formatMonth(report.reportMonth)} 데이터
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" /> {formatDateTime(report.generatedAt)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <BookOpen className="h-3.5 w-3.5" /> 약 {readingMinutes(report.content)}분
+            </span>
+          </div>
           <ShareButton />
         </div>
       </header>
 
-      {/* ─── Report Content (Markdown) ──────────────────────────────────────── */}
-      <article className="rounded-xl border bg-card p-6 shadow-sm lg:p-10">
+      <article className="rounded-3xl border bg-card p-6 shadow-soft sm:p-10">
         <MarkdownRenderer content={report.content} />
       </article>
 
-      {/* ─── Prev / Next Navigation ─────────────────────────────────────────── */}
-      <Separator />
-      <nav className="grid gap-3 sm:grid-cols-2" aria-label="리포트 네비게이션">
-        {/* 이전 (더 오래된) */}
+      <nav className="grid gap-3 sm:grid-cols-2" aria-label="리포트 이동">
         {prev ? (
           <Link
             href={`/reports/${prev.id}`}
-            className="group flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm hover:border-primary/40 hover:shadow-md transition-all"
+            className="group flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-soft transition-all hover:border-primary/30 hover:shadow-lift"
           >
-            <ArrowLeft className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
+            <ArrowLeft className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-0.5 group-hover:text-primary" />
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground mb-0.5">이전 리포트</p>
-              <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
-                {formatMonth(prev.reportMonth)} {prev.domain}
-              </p>
+              <p className="text-xs text-muted-foreground">이전 리포트</p>
+              <p className="truncate text-sm font-semibold">{formatMonth(prev.reportMonth)}</p>
             </div>
           </Link>
         ) : (
-          <div className="rounded-xl border border-dashed p-4 flex items-center justify-center">
-            <p className="text-xs text-muted-foreground">더 오래된 리포트가 없습니다</p>
-          </div>
+          <div className="hidden sm:block" />
         )}
-
-        {/* 다음 (더 최신) */}
-        {next ? (
+        {next && (
           <Link
             href={`/reports/${next.id}`}
-            className="group flex items-center justify-end gap-3 rounded-xl border bg-card p-4 shadow-sm hover:border-primary/40 hover:shadow-md transition-all text-right sm:col-start-2"
+            className="group flex items-center justify-end gap-3 rounded-2xl border bg-card p-4 text-right shadow-soft transition-all hover:border-primary/30 hover:shadow-lift"
           >
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground mb-0.5">다음 리포트</p>
-              <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
-                {formatMonth(next.reportMonth)} {next.domain}
-              </p>
+              <p className="text-xs text-muted-foreground">다음 리포트</p>
+              <p className="truncate text-sm font-semibold">{formatMonth(next.reportMonth)}</p>
             </div>
-            <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
+            <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
           </Link>
-        ) : (
-          <div className="rounded-xl border border-dashed p-4 flex items-center justify-center sm:col-start-2">
-            <p className="text-xs text-muted-foreground">더 최신 리포트가 없습니다</p>
-          </div>
         )}
       </nav>
     </div>

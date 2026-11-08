@@ -2,79 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design tokens ───────────────────────────────────────────────────────────
+   Neutral: zinc 계열 / Primary: indigo-violet / Success: emerald / Danger: rose
+   ─────────────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 240 20% 99%;
+    --foreground: 240 10% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
-
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --card-foreground: 240 10% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 10% 9%;
 
-    --radius: 0.5rem;
+    --border: 240 6% 91%;
+    --input: 240 6% 88%;
+    --ring: 244 76% 59%;
 
-    --sidebar: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 221 83% 53%;
+    --primary: 244 76% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 44%;
+
+    --accent: 244 76% 97%;
+    --accent-foreground: 244 60% 45%;
+
+    --destructive: 350 80% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 158 64% 38%;
+    --danger: 350 80% 52%;
+    --warning: 35 92% 48%;
+
+    --radius: 0.875rem;
+
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 240 10% 9%;
+    --sidebar-border: 240 6% 92%;
+    --sidebar-accent: 244 76% 96%;
+    --sidebar-accent-foreground: 244 60% 50%;
+
+    --chart-1: 244 76% 59%;
+    --chart-2: 190 85% 42%;
+    --chart-3: 158 64% 40%;
+    --chart-4: 35 92% 50%;
+    --chart-5: 330 75% 56%;
   }
 
   .dark {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 96%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 8% 7%;
+    --card-foreground: 0 0% 96%;
 
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 224 76% 64%;
+    --popover: 240 8% 8%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 224 76% 64%;
-    --primary-foreground: 0 0% 100%;
+    --border: 240 5% 15%;
+    --input: 240 5% 18%;
+    --ring: 244 85% 70%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --primary: 244 85% 68%;
+    --primary-foreground: 240 10% 6%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --secondary: 240 5% 12%;
+    --secondary-foreground: 0 0% 96%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 240 5% 12%;
+    --muted-foreground: 240 5% 62%;
 
-    --destructive: 0 63% 56%;
+    --accent: 244 40% 16%;
+    --accent-foreground: 244 90% 82%;
+
+    --destructive: 350 75% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --success: 158 60% 52%;
+    --danger: 350 85% 66%;
+    --warning: 38 92% 58%;
 
-    --sidebar: 222 47% 9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 20%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 224 76% 64%;
+    --sidebar: 240 10% 5%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-border: 240 5% 13%;
+    --sidebar-accent: 244 40% 15%;
+    --sidebar-accent-foreground: 244 90% 82%;
+
+    --chart-1: 244 85% 70%;
+    --chart-2: 190 80% 55%;
+    --chart-3: 158 60% 52%;
+    --chart-4: 38 92% 60%;
+    --chart-5: 330 80% 68%;
   }
 }
 
@@ -82,17 +105,52 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'ss01', 'tnum' 0;
+    word-break: keep-all;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
   }
 }
 
-/* ─── highlight.js 다크모드 오버라이드 ─────────────────────────────────────────
-   rehype-highlight가 붙이는 .hljs 클래스에 CSS 변수로 테마를 적용.
-   라이트 테마 CSS는 MarkdownRenderer에서 import (Next.js bundling).
-   ────────────────────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* 은은한 배경 그라데이션 (페이지 상단 글로우) */
+  .bg-glow {
+    background-image:
+      radial-gradient(60rem 30rem at 10% -10%, hsl(var(--primary) / 0.10), transparent 60%),
+      radial-gradient(40rem 24rem at 90% -10%, hsl(var(--chart-2) / 0.08), transparent 60%);
+  }
+  .text-gradient {
+    background-image: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--chart-2)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── highlight.js 다크모드 오버라이드 ─────────────────────────────────────── */
 .dark .hljs {
-  background: hsl(222 47% 9%);
+  background: hsl(240 8% 9%);
   color: #e6edf3;
 }
 .dark .hljs-comment,

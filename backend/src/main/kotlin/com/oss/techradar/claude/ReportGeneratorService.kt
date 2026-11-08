@@ -36,13 +36,13 @@ class ReportGeneratorService(
     @Transactional
     suspend fun generateReport(domain: String, month: YearMonth): MonthlyReport {
         // 1. 중복 생성 방지
-        monthlyReportRepository.findByDomainAndReportMonth(domain, month.atDay(1))
+        monthlyReportRepository.findByDomainAndReportMonth(domain, month)
             ?.let { return it }
 
         // 2. 집계 데이터 조회
         val top20 = libraryUsageRepository.findRankByDomainAndMonth(
             domain = domain,
-            collectedMonth = month.atDay(1),
+            collectedMonth = month,
             pageable = PageRequest.of(0, 20),
         )
         val rising   = top20.filter { it.growthRate >= 20.0 }
