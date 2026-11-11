@@ -1,27 +1,24 @@
-import { TrendingDown, TrendingUp, Minus } from 'lucide-react';
-import { cn, formatGrowthRate, getGrowthRateColor } from '@/lib/utils';
+import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { cn, formatGrowthRate, getGrowthTone, getGrowthToneClass } from '@/lib/utils';
 
 interface GrowthBadgeProps {
   rate: number;
   className?: string;
 }
 
+/** 증감률 — 색뿐 아니라 부호와 화살표를 함께 써서 색각 이상에서도 읽힌다. */
 export function GrowthBadge({ rate, className }: GrowthBadgeProps) {
-  const colorClass = getGrowthRateColor(rate);
-
-  const Icon =
-    rate > 0 ? TrendingUp : rate < 0 ? TrendingDown : Minus;
+  const t = useTranslations('growth');
+  const tone = getGrowthTone(rate);
+  const Icon = tone === 'up' ? ArrowUpRight : tone === 'down' ? ArrowDownRight : Minus;
+  const value = formatGrowthRate(rate);
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 text-xs font-medium tabular-nums',
-        colorClass,
-        className,
-      )}
-    >
-      <Icon className="h-3 w-3 shrink-0" />
-      {formatGrowthRate(rate)}
+    <span className={cn('inline-flex items-center gap-0.5 font-medium tabular-nums', getGrowthToneClass(tone), className)}>
+      <Icon className="h-[1em] w-[1em] shrink-0" aria-hidden="true" />
+      <span aria-hidden="true">{value}</span>
+      <span className="sr-only">{t(tone, { value })}</span>
     </span>
   );
 }

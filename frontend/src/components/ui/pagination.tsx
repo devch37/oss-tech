@@ -1,16 +1,23 @@
+'use client';
+
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { type ButtonProps, buttonVariants } from '@/components/ui/button';
+import { type ButtonProps } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button-variants';
 
-const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
-  <nav
-    role="navigation"
-    aria-label="pagination"
-    className={cn('mx-auto flex w-full justify-center', className)}
-    {...props}
-  />
-);
+const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => {
+  const t = useTranslations('common');
+  return (
+    <nav
+      role="navigation"
+      aria-label={t('pagination')}
+      className={cn('mx-auto flex w-full justify-center', className)}
+      {...props}
+    />
+  );
+};
 Pagination.displayName = 'Pagination';
 
 const PaginationContent = React.forwardRef<HTMLUListElement, React.ComponentProps<'ul'>>(
@@ -35,7 +42,7 @@ const PaginationLink = ({ className, isActive, size = 'icon', ...props }: Pagina
     aria-current={isActive ? 'page' : undefined}
     className={cn(
       buttonVariants({ variant: isActive ? 'outline' : 'ghost', size }),
-      isActive && 'border-primary text-primary font-semibold',
+      isActive && 'border-foreground font-semibold text-foreground',
       className,
     )}
     {...props}
@@ -43,32 +50,37 @@ const PaginationLink = ({ className, isActive, size = 'icon', ...props }: Pagina
 );
 PaginationLink.displayName = 'PaginationLink';
 
-const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink aria-label="이전 페이지" size="default" className={cn('gap-1 pl-2.5', className)} {...props}>
-    <ChevronLeft className="h-4 w-4" />
-    <span>이전</span>
-  </PaginationLink>
-);
+const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => {
+  const t = useTranslations('common');
+  return (
+    <PaginationLink aria-label={t('previousPage')} size="default" className={cn('gap-1 pl-2.5', className)} {...props}>
+      <ChevronLeft className="h-4 w-4" />
+      <span>{t('previous')}</span>
+    </PaginationLink>
+  );
+};
 PaginationPrevious.displayName = 'PaginationPrevious';
 
-const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink aria-label="다음 페이지" size="default" className={cn('gap-1 pr-2.5', className)} {...props}>
-    <span>다음</span>
-    <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
-);
+const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => {
+  const t = useTranslations('common');
+  return (
+    <PaginationLink aria-label={t('nextPage')} size="default" className={cn('gap-1 pr-2.5', className)} {...props}>
+      <span>{t('next')}</span>
+      <ChevronRight className="h-4 w-4" />
+    </PaginationLink>
+  );
+};
 PaginationNext.displayName = 'PaginationNext';
 
-const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'>) => (
-  <span
-    aria-hidden
-    className={cn('flex h-9 w-9 items-center justify-center', className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">더 보기</span>
-  </span>
-);
+const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'>) => {
+  const t = useTranslations('common');
+  return (
+    <span className={cn('flex h-9 w-9 items-center justify-center', className)} {...props}>
+      <MoreHorizontal aria-hidden className="h-4 w-4" />
+      <span className="sr-only">{t('more')}</span>
+    </span>
+  );
+};
 PaginationEllipsis.displayName = 'PaginationEllipsis';
 
 export {

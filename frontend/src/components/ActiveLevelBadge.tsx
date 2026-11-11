@@ -1,4 +1,5 @@
-import { cn, getScoreGrade, getScoreGradeColor } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
+import { cn, getScoreGrade, getScoreGradeClass } from '@/lib/utils';
 import type { ScoreGrade } from '@/lib/utils';
 
 interface ActiveLevelBadgeProps {
@@ -9,14 +10,17 @@ interface ActiveLevelBadgeProps {
 }
 
 export function ActiveLevelBadge({ score, grade: gradeProp, className }: ActiveLevelBadgeProps) {
+  const t = useTranslations('grades');
   const grade = gradeProp ?? getScoreGrade(score ?? null);
-  const colorClass = getScoreGradeColor(grade);
+  const label = grade === '-' ? t('none') : `${grade} · ${t(grade)}`;
 
   return (
     <span
+      title={label}
+      aria-label={label}
       className={cn(
-        'inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-bold',
-        colorClass,
+        'inline-flex h-6 min-w-6 items-center justify-center rounded-md border px-1.5 font-display text-xs font-semibold',
+        getScoreGradeClass(grade),
         className,
       )}
     >

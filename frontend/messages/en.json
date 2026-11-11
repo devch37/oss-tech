@@ -1,0 +1,232 @@
+{
+  "metadata": {
+    "title": "OSS Radar — what's rising in open source",
+    "description": "See which GitHub open-source projects and libraries are gaining momentum in frontend, backend, DevOps, mobile, data and security. Updated daily."
+  },
+  "brand": {
+    "name": "OSS Radar",
+    "tagline": "What's rising in open source"
+  },
+  "nav": {
+    "main": "Main navigation",
+    "home": "Radar",
+    "libraries": "Libraries",
+    "repositories": "Repositories",
+    "reports": "Reports",
+    "openMenu": "Open menu",
+    "skipToContent": "Skip to content",
+    "close": "Close menu"
+  },
+  "theme": {
+    "toggle": "Switch between light and dark theme"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "ko": "한국어"
+  },
+  "domains": {
+    "label": "Domain",
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "devops": "DevOps",
+    "mobile": "Mobile",
+    "data": "Data & ML",
+    "security": "Security"
+  },
+  "footer": {
+    "text": "Data comes from the GitHub API and is refreshed daily. Monthly reports are written by Claude."
+  },
+  "common": {
+    "retry": "Try again",
+    "viewOnGithub": "View {name} on GitHub",
+    "opensInNewTab": "opens in a new tab",
+    "noValue": "No data",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page}",
+    "reposCount": "{count, plural, one {# repo} other {# repos}}",
+    "more": "More pages",
+    "pagination": "Pagination",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
+  },
+  "growth": {
+    "up": "Up {value}",
+    "down": "Down {value}",
+    "flat": "No change"
+  },
+  "grades": {
+    "S": "Very active",
+    "A": "Active",
+    "B": "Moderate",
+    "C": "Low",
+    "none": "No data",
+    "formula": "Activity score = (commits × 3 + merged PRs × 2 + closed issues) ÷ ln(stars + 1), over the last 30 days."
+  },
+  "home": {
+    "title": "What's rising in {domain}",
+    "intro": "Repositories plotted by popularity and recent activity, plus the libraries they use that are growing fastest this month.",
+    "figures": {
+      "repositories": "repositories tracked",
+      "libraries": "libraries analyzed",
+      "month": "data for {month}"
+    },
+    "radar": {
+      "title": "Stars × activity",
+      "description": "Each dot is a repository. The further right, the more stars. The higher, the more commits, merged PRs and closed issues in the last 30 days."
+    },
+    "rising": {
+      "title": "Fastest-growing libraries",
+      "description": "Used by more {domain} repositories than last month ({month}).",
+      "viewAll": "See all libraries",
+      "empty": "Nothing has grown this month yet. Check back after the next crawl."
+    },
+    "report": {
+      "title": "Latest report",
+      "read": "Read the full report",
+      "fallback": "Not available in English yet. Showing the Korean version.",
+      "empty": "No report for {domain} yet. Reports are generated on the 1st of each month."
+    },
+    "empty": {
+      "title": "No data for {domain} yet",
+      "description": "Nothing has been collected for this domain. Start a crawl and reload the page:",
+      "hint": "The crawler needs a GITHUB_TOKEN in your .env file."
+    },
+    "error": {
+      "title": "Couldn't reach the data service",
+      "description": "Make sure the backend is running, then reload this page."
+    }
+  },
+  "radar": {
+    "ariaLabel": "Scatter plot of {count} repositories by stars and activity score",
+    "listLabel": "Repositories in this plot",
+    "xAxis": "Stars (log scale)",
+    "yAxis": "Activity score",
+    "quadrants": {
+      "rising": "Rising",
+      "established": "Established",
+      "coasting": "Coasting",
+      "quiet": "Quiet"
+    },
+    "tooltip": {
+      "stars": "Stars",
+      "forks": "Forks",
+      "score": "Activity score",
+      "commits": "Commits (30d)",
+      "prs": "PRs merged (30d)"
+    }
+  },
+  "libraries": {
+    "title": "Libraries",
+    "description": "How many tracked {domain} repositories use each library, month by month.",
+    "search": "Search libraries",
+    "month": "Month",
+    "sort": {
+      "label": "Sort by",
+      "usageCount": "Most used",
+      "growthRate": "Fastest growing",
+      "prevMonthCount": "Most used last month"
+    },
+    "count": "{count, plural, one {# library} other {# libraries}}",
+    "matching": "matching “{query}”",
+    "columns": {
+      "rank": "Rank",
+      "library": "Library",
+      "usage": "Repos",
+      "previous": "Last month",
+      "change": "Change"
+    },
+    "empty": {
+      "title": "No libraries for {month} yet",
+      "description": "Library counts appear after the crawler has parsed dependency files for this domain."
+    },
+    "noMatch": "No library matches “{query}”.",
+    "error": "Couldn't load libraries. Make sure the backend is running, then reload."
+  },
+  "libraryDetail": {
+    "back": "All libraries",
+    "usedBy": "Used by {count, plural, one {# repository} other {# repositories}} in {month}",
+    "noData": "No data for this month",
+    "thisMonth": "This month",
+    "lastMonth": "Last month",
+    "change": "Change vs last month",
+    "trendTitle": "Usage over six months",
+    "trendDescription": "Number of {domain} repositories using it each month.",
+    "trendUnavailable": "No trend data for this library yet.",
+    "topRepos": "Most active {domain} repositories",
+    "alsoPopular": "Also popular in {domain}",
+    "reposEmpty": "No repositories to show yet.",
+    "librariesEmpty": "No other libraries to show yet.",
+    "series": "Repositories"
+  },
+  "repositories": {
+    "title": "Repositories",
+    "description": "The most active open-source {domain} repositories on GitHub, ranked by activity score or stars.",
+    "sort": {
+      "label": "Sort by",
+      "score": "Activity score",
+      "stars": "Stars"
+    },
+    "level": {
+      "label": "Activity level",
+      "all": "All"
+    },
+    "count": "{count, plural, one {# repository} other {# repositories}}",
+    "matchingLevel": "at level {level}",
+    "columns": {
+      "rank": "Rank",
+      "repository": "Repository",
+      "stars": "Stars",
+      "score": "Score",
+      "commits": "Commits · 30d",
+      "prs": "PRs · 30d",
+      "level": "Level"
+    },
+    "empty": {
+      "title": "No repositories for {domain} yet",
+      "description": "Start a crawl for this domain to collect them."
+    },
+    "noMatch": "No repository is at level {level}.",
+    "error": "Couldn't load repositories. Make sure the backend is running, then reload."
+  },
+  "reports": {
+    "title": "Reports",
+    "description": "A monthly write-up of what changed in each domain, drafted by Claude from the library data.",
+    "generatedOn": "Generated {date}",
+    "read": "Read report",
+    "cardTitle": "{domain} trends, {month}",
+    "fallback": "There are no English reports for {domain} yet. Showing Korean reports instead.",
+    "empty": {
+      "title": "No reports for {domain} yet",
+      "description": "Reports are generated on the 1st of each month. To create one now, call the API:"
+    },
+    "error": "Couldn't load reports. Make sure the backend is running, then reload.",
+    "previewUnavailable": "Preview unavailable."
+  },
+  "reportDetail": {
+    "back": "All reports",
+    "title": "{domain} trends, {month}",
+    "generated": "Generated {date}",
+    "writtenBy": "Written by Claude from {month} library data",
+    "share": "Copy link",
+    "copied": "Link copied",
+    "olderReport": "Older report",
+    "newerReport": "Newer report",
+    "noOlder": "This is the oldest report",
+    "noNewer": "This is the newest report",
+    "navLabel": "Report navigation",
+    "readIn": "Read in {language}",
+    "language": {
+      "en": "English",
+      "ko": "Korean"
+    }
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "description": "This page couldn't load its data. Try again, or check that the backend is running.",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "That page doesn't exist or has moved.",
+    "goHome": "Back to the radar"
+  }
+}

@@ -10,10 +10,15 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: '2rem',
-      screens: { '2xl': '1400px' },
+      padding: { DEFAULT: '1rem', sm: '1.5rem', lg: '2rem' },
+      screens: { '2xl': '1200px' },
     },
     extend: {
+      fontFamily: {
+        // 영문은 Instrument Sans / Bricolage, 한글 글리프는 자동으로 Noto Sans KR로 폴백
+        sans: ['var(--font-body)', 'var(--font-ko)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-ko)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -40,17 +45,21 @@ const config: Config = {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+        // ── Radar 팔레트 ──────────────────────────────────────────────
+        signal: {
+          DEFAULT: 'hsl(var(--signal))', // 채움/점 — 유일한 강조색
+          ink: 'hsl(var(--signal-ink))', // 텍스트로 쓸 때 (대비 확보)
         },
+        sea: 'hsl(var(--sea))',
+        brick: 'hsl(var(--brick))',
       },
       borderRadius: {
         lg: 'var(--radius)',

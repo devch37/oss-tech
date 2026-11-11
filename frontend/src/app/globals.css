@@ -2,79 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Radar 디자인 토큰 ───────────────────────────────────────────────────────
+   Paper / Ink : 차가운 종이색 배경 + 네이비 잉크 텍스트
+   Signal      : 유일한 강조색(앰버). 점/채움은 --signal, 글자는 대비가 확보된 --signal-ink
+   Sea / Brick : 데이터 보조색 (상승·안정 / 하락)
+   ─────────────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 216 38% 97%;
+    --foreground: 213 61% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 213 61% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 61% 11%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 215 27% 91%;
+    --input: 215 27% 84%;
+    --ring: 196 64% 33%;
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84% 60%;
+    --primary: 213 61% 11%;
+    --primary-foreground: 216 38% 97%;
+    --secondary: 210 31% 95%;
+    --secondary-foreground: 213 61% 11%;
+    --muted: 210 31% 95%;
+    --muted-foreground: 215 20% 40%;
+    --accent: 210 31% 93%;
+    --accent-foreground: 213 61% 11%;
+    --destructive: 8 62% 47%;
     --destructive-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --signal: 37 91% 55%;
+    --signal-ink: 35 100% 30%;
+    --sea: 196 64% 33%;
+    --brick: 8 62% 47%;
 
     --radius: 0.5rem;
-
-    --sidebar: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 221 83% 53%;
   }
 
   .dark {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
+    --background: 213 55% 8%;
+    --foreground: 214 30% 94%;
 
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
+    --card: 211 50% 12%;
+    --card-foreground: 214 30% 94%;
+    --popover: 211 50% 12%;
+    --popover-foreground: 214 30% 94%;
 
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 224 76% 64%;
+    --border: 212 32% 21%;
+    --input: 212 30% 27%;
+    --ring: 195 60% 58%;
 
-    --primary: 224 76% 64%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 63% 56%;
+    --primary: 214 30% 94%;
+    --primary-foreground: 213 61% 11%;
+    --secondary: 212 40% 15%;
+    --secondary-foreground: 214 30% 94%;
+    --muted: 212 40% 15%;
+    --muted-foreground: 214 20% 67%;
+    --accent: 212 40% 18%;
+    --accent-foreground: 214 30% 94%;
+    --destructive: 8 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-
-    --sidebar: 222 47% 9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 20%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 224 76% 64%;
+    --signal: 37 91% 55%;
+    --signal-ink: 38 92% 62%;
+    --sea: 195 55% 58%;
+    --brick: 8 78% 63%;
   }
 }
 
@@ -82,8 +75,90 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: hsl(var(--signal) / 0.35);
+  }
+}
+
+/* ─── Radar 플롯 — 페이지 로드 시 1회만 재생되는 스윕 ────────────────────────────
+   스윕 선이 12시 방향에서 시계 방향으로 한 바퀴 돌고, 점은 선이 지나가는 각도의 순서대로
+   나타난다(각 점의 --delay 는 컴포넌트에서 각도로 계산). prefers-reduced-motion 이면 생략. */
+@keyframes radar-dot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes radar-sweep {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.95;
+  }
+  88% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.radar-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: radar-dot-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--delay, 0s);
+}
+
+/* 이름 라벨은 크기 변화 없이 점과 같은 타이밍에 페이드인 */
+@keyframes radar-label-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.radar-label {
+  animation: radar-label-in 0.4s ease-out both;
+  animation-delay: var(--delay, 0s);
+}
+
+.radar-sweep {
+  transform-box: view-box;
+  animation: radar-sweep var(--sweep-duration, 1.6s) linear both;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-dot,
+  .radar-label {
+    animation: none;
+  }
+  .radar-sweep {
+    display: none;
   }
 }
 
@@ -92,7 +167,7 @@
    라이트 테마 CSS는 MarkdownRenderer에서 import (Next.js bundling).
    ────────────────────────────────────────────────────────────────────────── */
 .dark .hljs {
-  background: hsl(222 47% 9%);
+  background: hsl(213 55% 8%);
   color: #e6edf3;
 }
 .dark .hljs-comment,

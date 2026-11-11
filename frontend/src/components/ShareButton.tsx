@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, Share2 } from 'lucide-react';
+import { Check, Link2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 
-interface ShareButtonProps {
-  className?: string;
-}
-
-export function ShareButton({ className }: ShareButtonProps) {
+export function ShareButton({ className }: { className?: string }) {
+  const t = useTranslations('reportDetail');
   const [copied, setCopied] = useState(false);
+
+  const flash = () => {
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard API 미지원 환경 fallback
       const input = document.createElement('input');
@@ -24,22 +25,21 @@ export function ShareButton({ className }: ShareButtonProps) {
       input.select();
       document.execCommand('copy');
       document.body.removeChild(input);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    flash();
   };
 
   return (
     <Button variant="outline" size="sm" onClick={handleCopy} className={className}>
       {copied ? (
         <>
-          <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-500" />
-          복사됨
+          <Check className="mr-1.5 h-3.5 w-3.5 text-sea" aria-hidden="true" />
+          <span role="status">{t('copied')}</span>
         </>
       ) : (
         <>
-          <Share2 className="mr-1.5 h-3.5 w-3.5" />
-          URL 복사
+          <Link2 className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+          {t('share')}
         </>
       )}
     </Button>

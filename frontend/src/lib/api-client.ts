@@ -8,6 +8,7 @@ import type {
   PagedResult,
   ReportMeta,
   Repository,
+  ReportLanguage,
 } from '@/types/api';
 
 // ─── URL Strategy ─────────────────────────────────────────────────────────────
@@ -95,10 +96,13 @@ export async function getLibraries(params: {
   } as RequestInit);
 }
 
-/** GET /api/v1/libraries/{name}/trend?domain= */
+/**
+ * GET /api/v1/libraries/trend?name=&domain=
+ * 이름에 '/'가 들어가는 스코프 패키지(@scope/name)가 있어 경로 변수 대신 쿼리 파라미터로 보낸다.
+ */
 export async function getLibraryTrend(name: string, domain: string): Promise<LibraryTrend> {
-  const query = buildQuery({ domain });
-  return apiFetch<LibraryTrend>(`/api/v1/libraries/${encodeURIComponent(name)}/trend${query}`, {
+  const query = buildQuery({ name, domain });
+  return apiFetch<LibraryTrend>(`/api/v1/libraries/trend${query}`, {
     next: { revalidate: 600 },
   } as RequestInit);
 }
@@ -121,9 +125,9 @@ export async function getRepositories(params: {
   } as RequestInit);
 }
 
-/** GET /api/v1/reports?domain= */
-export async function getReports(domain: string): Promise<ReportMeta[]> {
-  const query = buildQuery({ domain });
+/** GET /api/v1/reports?domain=&lang= */
+export async function getReports(domain: string, lang: ReportLanguage = 'en'): Promise<ReportMeta[]> {
+  const query = buildQuery({ domain, lang });
   return apiFetch<ReportMeta[]>(`/api/v1/reports${query}`, {
     next: { revalidate: 300 },
   } as RequestInit);
@@ -136,9 +140,13 @@ export async function getReport(id: number): Promise<MonthlyReport> {
   } as RequestInit);
 }
 
-/** POST /api/v1/reports/generate?domain=&yearMonth= */
-export async function generateReport(domain: string, yearMonth: string): Promise<MonthlyReport> {
-  const query = buildQuery({ domain, yearMonth });
+/** POST /api/v1/reports/generate?domain=&yearMonth=&lang= */
+export async function generateReport(
+  domain: string,
+  yearMonth: string,
+  lang: ReportLanguage = 'en',
+): Promise<MonthlyReport> {
+  const query = buildQuery({ domain, yearMonth, lang });
   return apiFetch<MonthlyReport>(`/api/v1/reports/generate${query}`, {
     method: 'POST',
     cache: 'no-store',

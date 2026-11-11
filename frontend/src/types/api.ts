@@ -74,8 +74,12 @@ export interface ReportMeta {
   id: number;
   domain: string;
   reportMonth: string; // "YYYY-MM"
+  language: ReportLanguage;
   generatedAt: string; // ISO 8601
 }
+
+/** 백엔드 ReportLanguage.code */
+export type ReportLanguage = 'en' | 'ko';
 
 /** GET /api/v1/reports/{id} → MonthlyReportDto */
 export interface MonthlyReport extends ReportMeta {

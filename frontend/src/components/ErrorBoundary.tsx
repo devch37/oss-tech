@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -35,10 +36,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError) {
       return (
         this.props.fallback ?? (
-          <ErrorCard
-            message={this.state.error?.message ?? '알 수 없는 오류가 발생했습니다.'}
-            onRetry={() => this.setState({ hasError: false, error: null })}
-          />
+          <ErrorCard onRetry={() => this.setState({ hasError: false, error: null })} />
         )
       );
     }
@@ -49,41 +47,35 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 // ─── Stateless Error UI ───────────────────────────────────────────────────────
 
 interface ErrorCardProps {
+  /** 무슨 일이 있었고 어떻게 하면 되는지. 생략하면 일반 안내 문구 */
   message?: string;
   onRetry?: () => void;
   className?: string;
 }
 
-export function ErrorCard({
-  message = '데이터를 불러오는 중 오류가 발생했습니다.',
-  onRetry,
-  className,
-}: ErrorCardProps) {
+export function ErrorCard({ message, onRetry, className }: ErrorCardProps) {
+  const t = useTranslations();
   return (
     <div
+      role="alert"
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-8 text-center',
+        'flex items-start gap-3 rounded-lg border border-border border-l-4 border-l-brick bg-card p-4 sm:p-5',
         className,
       )}
     >
-      <AlertCircle className="h-8 w-8 text-destructive" />
-      <p className="text-sm text-destructive font-medium">{message}</p>
-      {onRetry && (
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          다시 시도
-        </Button>
-      )}
+      <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-brick" aria-hidden="true" />
+      <div className="min-w-0 flex-1 space-y-3">
+        <div className="space-y-1">
+          <p className="font-medium">{t('errors.title')}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{message ?? t('errors.description')}</p>
+        </div>
+        {onRetry && (
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            <RefreshCw className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+            {t('common.retry')}
+          </Button>
+        )}
+      </div>
     </div>
-  );
-}
-
-/** 인라인 에러 (테이블 행 등 작은 영역) */
-export function InlineError({ message }: { message: string }) {
-  return (
-    <span className="flex items-center gap-1.5 text-xs text-destructive">
-      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-      {message}
-    </span>
   );
 }
