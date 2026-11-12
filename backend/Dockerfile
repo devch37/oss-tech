@@ -30,6 +30,8 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -qO- http://localhost:8080/actuator/health 2>/dev/null | grep -q '"status":"UP"' || exit 1
 
+# application.yml 의 로컬 기본 포트(8089)와 무관하게 컨테이너 안에서는 항상 8080 (EXPOSE/헬스체크/compose 매핑과 일치)
+ENV SERVER_PORT=8080
 EXPOSE 8080
 
 ENTRYPOINT ["java", \

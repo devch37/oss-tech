@@ -4,13 +4,14 @@ import com.oss.techradar.domain.LibraryUsage
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import java.time.LocalDate
+import java.time.YearMonth
 
 interface LibraryUsageRepository : JpaRepository<LibraryUsage, Long> {
 
     /**
      * 특정 도메인의 월별 라이브러리 순위 (usage_count DESC).
-     * YearMonthConverter가 collectedMonth를 LocalDate로 변환하므로 파라미터도 LocalDate 사용.
+     * collectedMonth는 YearMonthConverter가 적용된 YearMonth 필드이므로 파라미터도 YearMonth를 넘겨야 한다
+     * (LocalDate를 넘기면 Hibernate가 QueryArgumentException을 던진다).
      */
     @Query(
         """
@@ -21,7 +22,7 @@ interface LibraryUsageRepository : JpaRepository<LibraryUsage, Long> {
     )
     fun findRankByDomainAndMonth(
         domain: String,
-        collectedMonth: LocalDate,
+        collectedMonth: YearMonth,
         pageable: Pageable,
     ): List<LibraryUsage>
 
@@ -43,6 +44,6 @@ interface LibraryUsageRepository : JpaRepository<LibraryUsage, Long> {
     fun findByDomainAndLibraryNameAndCollectedMonth(
         domain: String,
         libraryName: String,
-        collectedMonth: LocalDate,
+        collectedMonth: YearMonth,
     ): LibraryUsage?
 }

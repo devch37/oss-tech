@@ -12,7 +12,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-osstech}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-osstech_secret}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -45,7 +45,7 @@ services:
       WEBCLIENT_CONNECT_TIMEOUT_MS: ${WEBCLIENT_CONNECT_TIMEOUT_MS:-5000}
       WEBCLIENT_READ_TIMEOUT_MS: ${WEBCLIENT_READ_TIMEOUT_MS:-30000}
     ports:
-      - "8080:8080"
+      - "8089:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,7 +58,7 @@ services:
       dockerfile: Dockerfile
       args:
         # 빌드 타임에 번들에 인라인되는 외부 URL (브라우저 → 백엔드 직접 호출 시)
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8089}
     container_name: oss-tech-frontend
     env_file:
       - path: .env
@@ -66,9 +66,11 @@ services:
     environment:
       # 서버 컴포넌트 fetch: 컨테이너 내부 통신 (Next.js rewrite 경유 안 함)
       INTERNAL_API_URL: http://backend:8080
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+      # canonical / hreflang / Open Graph 에 쓰이는 공개 주소 (배포 시 실제 도메인으로)
+      SITE_URL: ${SITE_URL:-http://localhost:3033}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8089}
     ports:
-      - "3000:3000"
+      - "3033:3000"
     depends_on:
       - backend
     restart: unless-stopped

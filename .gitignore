@@ -253,3 +253,6 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,node,gradle,java,windows
+
+# 검증용 별도 빌드 폴더 (NEXT_DIST_DIR)
+.next-*

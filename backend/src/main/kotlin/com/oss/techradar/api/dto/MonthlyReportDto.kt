@@ -7,6 +7,7 @@ data class MonthlyReportDto(
     val id: Long,
     val domain: String,
     val reportMonth: String,   // "YYYY-MM" 형식
+    val language: String,      // "en" | "ko"
     val content: String,
     val generatedAt: LocalDateTime,
 ) {
@@ -15,6 +16,7 @@ data class MonthlyReportDto(
             id = entity.id,
             domain = entity.domain,
             reportMonth = entity.reportMonth.toString(),  // YearMonth.toString() → "YYYY-MM"
+            language = entity.language,
             content = entity.content,
             generatedAt = entity.generatedAt,
         )

@@ -8,6 +8,7 @@ data class ReportMetaDto(
     val id: Long,
     val domain: String,
     val reportMonth: String,     // "YYYY-MM"
+    val language: String,        // "en" | "ko"
     val generatedAt: LocalDateTime,
 ) {
     companion object {
@@ -15,6 +16,7 @@ data class ReportMetaDto(
             id = entity.id,
             domain = entity.domain,
             reportMonth = entity.reportMonth.toString(),
+            language = entity.language,
             generatedAt = entity.generatedAt,
         )
     }

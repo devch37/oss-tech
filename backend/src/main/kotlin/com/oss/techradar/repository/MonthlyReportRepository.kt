@@ -2,14 +2,14 @@ package com.oss.techradar.repository
 
 import com.oss.techradar.domain.MonthlyReport
 import org.springframework.data.jpa.repository.JpaRepository
-import java.time.LocalDate
+import java.time.YearMonth
 
 interface MonthlyReportRepository : JpaRepository<MonthlyReport, Long> {
 
-    fun findAllByDomainOrderByReportMonthDesc(domain: String): List<MonthlyReport>
+    fun findAllByDomainAndLanguageOrderByReportMonthDesc(domain: String, language: String): List<MonthlyReport>
 
-    /** YearMonthConverter 적용으로 파라미터는 LocalDate (월의 첫째 날) */
-    fun findByDomainAndReportMonth(domain: String, reportMonth: LocalDate): MonthlyReport?
+    /** reportMonth는 YearMonthConverter가 적용된 YearMonth 필드 */
+    fun findByDomainAndReportMonthAndLanguage(domain: String, reportMonth: YearMonth, language: String): MonthlyReport?
 
-    fun existsByDomainAndReportMonth(domain: String, reportMonth: LocalDate): Boolean
+    fun existsByDomainAndReportMonthAndLanguage(domain: String, reportMonth: YearMonth, language: String): Boolean
 }

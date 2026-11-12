@@ -17,8 +17,8 @@ import java.time.YearMonth
     name = "monthly_reports",
     uniqueConstraints = [
         UniqueConstraint(
-            name = "uq_report_domain_month",
-            columnNames = ["domain", "report_month"],
+            name = "uq_report_domain_month_language",
+            columnNames = ["domain", "report_month", "language"],
         ),
     ],
 )
@@ -34,6 +34,10 @@ class MonthlyReport(
     @Convert(converter = YearMonthConverter::class)
     @Column(name = "report_month", nullable = false)
     val reportMonth: YearMonth,
+
+    /** 리포트 언어 코드 ("en" | "ko") — [ReportLanguage.code] */
+    @Column(nullable = false, length = 5)
+    val language: String,
 
     @Column(columnDefinition = "TEXT", nullable = false)
     val content: String,

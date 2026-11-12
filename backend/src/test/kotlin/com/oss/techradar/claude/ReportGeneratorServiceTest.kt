@@ -5,6 +5,7 @@ import com.oss.techradar.claude.dto.ClaudeResponse
 import com.oss.techradar.config.WebClientProperties
 import com.oss.techradar.domain.LibraryUsage
 import com.oss.techradar.domain.MonthlyReport
+import com.oss.techradar.domain.ReportLanguage
 import com.oss.techradar.repository.LibraryUsageRepository
 import com.oss.techradar.repository.MonthlyReportRepository
 import io.mockk.coEvery
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Pageable
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 
@@ -81,15 +81,16 @@ class ReportGeneratorServiceTest {
             id = 1L,
             domain = testDomain,
             reportMonth = testMonth,
+            language = "en",
             content = "# 리포트 내용",
             generatedAt = LocalDateTime.now(),
         )
 
         every {
-            monthlyReportRepository.findByDomainAndReportMonth(testDomain, testMonth.atDay(1))
+            monthlyReportRepository.findByDomainAndReportMonthAndLanguage(testDomain, testMonth, "en")
         } returns null
         every {
-            libraryUsageRepository.findRankByDomainAndMonth(testDomain, testMonth.atDay(1), any())
+            libraryUsageRepository.findRankByDomainAndMonth(testDomain, testMonth, any())
         } returns libraries
         coEvery { anthropicWebClient.sendMessage(any()) } returns makeSuccessResponse("# 리포트 내용")
         every { monthlyReportRepository.save(any()) } returns savedReport
@@ -110,11 +111,12 @@ class ReportGeneratorServiceTest {
             id = 99L,
             domain = testDomain,
             reportMonth = testMonth,
+            language = "en",
             content = "기존 리포트",
             generatedAt = LocalDateTime.now().minusDays(1),
         )
         every {
-            monthlyReportRepository.findByDomainAndReportMonth(testDomain, testMonth.atDay(1))
+            monthlyReportRepository.findByDomainAndReportMonthAndLanguage(testDomain, testMonth, "en")
         } returns existing
 
         // when
@@ -136,7 +138,7 @@ class ReportGeneratorServiceTest {
         val requestSlot = slot<ClaudeRequest>()
 
         every {
-            monthlyReportRepository.findByDomainAndReportMonth(any(), any())
+            monthlyReportRepository.findByDomainAndReportMonthAndLanguage(any(), any(), any())
         } returns null
         every {
             libraryUsageRepository.findRankByDomainAndMonth(any(), any(), any())
@@ -163,13 +165,13 @@ class ReportGeneratorServiceTest {
         )
         val requestSlot = slot<ClaudeRequest>()
 
-        every { monthlyReportRepository.findByDomainAndReportMonth(any(), any()) } returns null
+        every { monthlyReportRepository.findByDomainAndReportMonthAndLanguage(any(), any(), any()) } returns null
         every { libraryUsageRepository.findRankByDomainAndMonth(any(), any(), any()) } returns libraries
         coEvery { anthropicWebClient.sendMessage(capture(requestSlot)) } returns makeSuccessResponse("내용")
         every { monthlyReportRepository.save(any()) } returnsArgument 0
 
         // when
-        service.generateReport(testDomain, testMonth)
+        service.generateReport(testDomain, testMonth, ReportLanguage.KO)
 
         // then
         val prompt = requestSlot.captured.messages.first().content
@@ -179,5 +181,64 @@ class ReportGeneratorServiceTest {
             prompt.substringAfter("급상승").contains("starlette"),
             "일반 라이브러리는 급상승 섹션에 미포함",
         )
+    }
+
+    @Test
+    fun `generateReport - 기본 언어는 영어이며 영어 프롬프트 사용`() = runTest {
+        val libraries = listOf(
+            makeLibraryUsage("uvicorn", 500, 25.0, 400),
+            makeLibraryUsage("starlette", 300, 5.0, 286),
+        )
+        val requestSlot = slot<ClaudeRequest>()
+
+        every { monthlyReportRepository.findByDomainAndReportMonthAndLanguage(any(), any(), any()) } returns null
+        every { libraryUsageRepository.findRankByDomainAndMonth(any(), any(), any()) } returns libraries
+        coEvery { anthropicWebClient.sendMessage(capture(requestSlot)) } returns makeSuccessResponse("content")
+        every { monthlyReportRepository.save(any()) } returnsArgument 0
+
+        service.generateReport(testDomain, testMonth)
+
+        val request = requestSlot.captured
+        val prompt = request.messages.first().content
+        assertTrue(prompt.contains("Rising libraries"), "영어 급상승 섹션")
+        assertTrue(request.system.contains("English"), "시스템 프롬프트가 영어 작성을 지시")
+        assertFalse(prompt.contains("급상승"), "영어 프롬프트에 한국어 섹션명 없음")
+    }
+
+    @Test
+    fun `generateReport - 한국어 요청은 한국어 시스템 프롬프트와 ko 언어로 저장`() = runTest {
+        val savedSlot = slot<MonthlyReport>()
+
+        every { monthlyReportRepository.findByDomainAndReportMonthAndLanguage(testDomain, testMonth, "ko") } returns null
+        every { libraryUsageRepository.findRankByDomainAndMonth(any(), any(), any()) } returns emptyList()
+        val requestSlot = slot<ClaudeRequest>()
+        coEvery { anthropicWebClient.sendMessage(capture(requestSlot)) } returns makeSuccessResponse("내용")
+        every { monthlyReportRepository.save(capture(savedSlot)) } returnsArgument 0
+
+        service.generateReport(testDomain, testMonth, ReportLanguage.KO)
+
+        assertTrue(requestSlot.captured.system.contains("한국어"), "시스템 프롬프트가 한국어 작성을 지시")
+        assertEquals("ko", savedSlot.captured.language)
+    }
+
+    @Test
+    fun `generateReport - 같은 월이라도 언어가 다르면 별도로 생성`() = runTest {
+        val enExisting = MonthlyReport(
+            id = 1L, domain = testDomain, reportMonth = testMonth, language = "en",
+            content = "existing en", generatedAt = LocalDateTime.now(),
+        )
+        every { monthlyReportRepository.findByDomainAndReportMonthAndLanguage(testDomain, testMonth, "en") } returns enExisting
+        every { monthlyReportRepository.findByDomainAndReportMonthAndLanguage(testDomain, testMonth, "ko") } returns null
+        every { libraryUsageRepository.findRankByDomainAndMonth(any(), any(), any()) } returns emptyList()
+        coEvery { anthropicWebClient.sendMessage(any()) } returns makeSuccessResponse("한국어 본문")
+        every { monthlyReportRepository.save(any()) } returnsArgument 0
+
+        // en은 이미 있으므로 Claude 호출 없음
+        assertEquals(1L, service.generateReport(testDomain, testMonth, ReportLanguage.EN).id)
+        coVerify(exactly = 0) { anthropicWebClient.sendMessage(any()) }
+
+        // ko는 없으므로 새로 생성
+        assertEquals("ko", service.generateReport(testDomain, testMonth, ReportLanguage.KO).language)
+        coVerify(exactly = 1) { anthropicWebClient.sendMessage(any()) }
     }
 }

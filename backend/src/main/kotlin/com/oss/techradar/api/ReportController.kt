@@ -4,6 +4,7 @@ import com.oss.techradar.api.dto.MonthlyReportDto
 import com.oss.techradar.api.dto.ReportMetaDto
 import com.oss.techradar.claude.ReportGeneratorService
 import com.oss.techradar.common.ApiResponse
+import com.oss.techradar.domain.ReportLanguage
 import com.oss.techradar.repository.MonthlyReportRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -25,14 +26,16 @@ class ReportController(
 
     @Operation(
         summary = "리포트 목록 조회",
-        description = "도메인별 리포트 메타 목록을 최신순으로 반환합니다. content는 포함되지 않습니다.",
+        description = "도메인·언어별 리포트 메타 목록을 최신순으로 반환합니다. content는 포함되지 않습니다. lang: en(기본) | ko",
     )
     @GetMapping
     fun getReports(
         @RequestParam domain: String,
+        @RequestParam(defaultValue = "en") lang: String,
     ): ApiResponse<List<ReportMetaDto>> {
+        val language = ReportLanguage.fromCode(lang)
         val metas = monthlyReportRepository
-            .findAllByDomainOrderByReportMonthDesc(domain)
+            .findAllByDomainAndLanguageOrderByReportMonthDesc(domain, language.code)
             .map { ReportMetaDto.from(it) }
         return ApiResponse.ok(metas)
     }
@@ -50,17 +53,19 @@ class ReportController(
 
     @Operation(
         summary = "리포트 수동 생성",
-        description = "특정 도메인·월 리포트를 즉시 생성합니다. yearMonth 형식: YYYY-MM. 이미 존재하면 기존 리포트를 반환합니다.",
+        description = "특정 도메인·월·언어 리포트를 즉시 생성합니다. yearMonth 형식: YYYY-MM, lang: en(기본) | ko. 이미 존재하면 기존 리포트를 반환합니다.",
     )
     @PostMapping("/generate")
     suspend fun generateReport(
         @RequestParam domain: String,
         @RequestParam yearMonth: String,
+        @RequestParam(defaultValue = "en") lang: String,
     ): ApiResponse<MonthlyReportDto> {
+        val language = ReportLanguage.fromCode(lang)
         val month = runCatching { YearMonth.parse(yearMonth) }
             .getOrElse { throw IllegalArgumentException("잘못된 yearMonth 형식: '$yearMonth'. YYYY-MM 형식으로 입력해주세요.") }
 
-        val report = reportGeneratorService.generateReport(domain, month)
+        val report = reportGeneratorService.generateReport(domain, month, language)
         return ApiResponse.ok(MonthlyReportDto.from(report))
     }
 }

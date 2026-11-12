@@ -28,7 +28,7 @@ class LibraryAggregationService(
 
         usageCounts.forEach { (libraryName, usageCount) ->
             val prevMonthCount = libraryUsageRepository
-                .findByDomainAndLibraryNameAndCollectedMonth(domain, libraryName, prevMonth.atDay(1))
+                .findByDomainAndLibraryNameAndCollectedMonth(domain, libraryName, prevMonth)
                 ?.usageCount ?: 0
 
             val growthRate = when {
@@ -38,7 +38,7 @@ class LibraryAggregationService(
             }
 
             val existing = libraryUsageRepository
-                .findByDomainAndLibraryNameAndCollectedMonth(domain, libraryName, month.atDay(1))
+                .findByDomainAndLibraryNameAndCollectedMonth(domain, libraryName, month)
 
             libraryUsageRepository.save(
                 LibraryUsage(

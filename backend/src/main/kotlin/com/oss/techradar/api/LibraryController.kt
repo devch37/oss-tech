@@ -37,21 +37,34 @@ class LibraryController(
             .getOrElse { throw IllegalArgumentException("잘못된 month 형식: '$month'. YYYY-MM 형식으로 입력해주세요.") }
 
         val items = libraryUsageRepository
-            .findRankByDomainAndMonth(domain, yearMonth.atDay(1), PageRequest.of(page, size))
+            .findRankByDomainAndMonth(domain, yearMonth, PageRequest.of(page, size))
             .map { LibraryRankDto.from(it) }
 
         return ApiResponse.ok(PagedResult(content = items, page = page, size = size))
     }
 
     @Operation(
+        summary = "라이브러리 트렌드 조회 (쿼리 파라미터)",
+        description = "특정 라이브러리의 최근 6개월 월별 사용 추이를 반환합니다. " +
+            "이름에 '/'가 들어가는 스코프 패키지(@scope/name)는 경로 변수로 보낼 수 없어(Tomcat이 %2F를 400으로 거부) 이 방식을 사용합니다.",
+    )
+    @GetMapping("/trend")
+    fun getLibraryTrendByName(
+        @RequestParam name: String,
+        @RequestParam domain: String,
+    ): ApiResponse<LibraryTrendDto> = buildTrend(name, domain)
+
+    @Operation(
         summary = "라이브러리 트렌드 조회",
-        description = "특정 라이브러리의 최근 6개월 월별 사용 추이를 반환합니다.",
+        description = "특정 라이브러리의 최근 6개월 월별 사용 추이를 반환합니다. 이름에 '/'가 있으면 GET /libraries/trend?name= 을 사용하세요.",
     )
     @GetMapping("/{name}/trend")
     fun getLibraryTrend(
         @PathVariable name: String,
         @RequestParam domain: String,
-    ): ApiResponse<LibraryTrendDto> {
+    ): ApiResponse<LibraryTrendDto> = buildTrend(name, domain)
+
+    private fun buildTrend(name: String, domain: String): ApiResponse<LibraryTrendDto> {
         val all = libraryUsageRepository.findTrendByLibraryAndDomain(name, domain)
         val recent6 = all.takeLast(6)   // 오래된 순 정렬이므로 뒤에서 6개
         return ApiResponse.ok(LibraryTrendDto.from(name, domain, recent6))
