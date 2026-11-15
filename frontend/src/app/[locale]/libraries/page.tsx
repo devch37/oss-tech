@@ -39,8 +39,8 @@ export default async function LibrariesPage({ params, searchParams }: Props) {
   const month = monthValues.includes(searchParams.month ?? '') ? (searchParams.month as string) : (monthValues[0] as string);
   const months = monthValues.map((value) => ({ value, label: formatMonth(value, locale) }));
 
-  // 검색·정렬·페이지네이션은 클라이언트에서 하므로 한 번에 넉넉히 가져온다
-  const data = await getLibraries({ domain, month, size: 100 }).catch(() => null);
+  // 검색·정렬·페이지네이션은 클라이언트에서 하므로 전체를 한 번에 가져온다 (잘리면 검색/정렬 결과가 틀어진다)
+  const data = await getLibraries({ domain, month, size: 1000 }).catch(() => null);
 
   return (
     <div className="space-y-8 pb-4">

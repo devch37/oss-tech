@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { cn } from '@/lib/utils';
 import type { Library } from '@/types/api';
 import { GrowthBadge } from '@/components/GrowthBadge';
 import { Sparkline } from '@/components/Sparkline';
@@ -13,10 +14,13 @@ export interface RankedLibrary {
 interface RankedLibrariesProps {
   items: RankedLibrary[];
   domain: string;
+  /** growth: 증가율·추이 표시 / usage: 사용량만 표시 (지난달 비교 데이터가 없을 때) */
+  mode?: 'growth' | 'usage';
 }
 
 /** 카드 그리드 대신 한 줄에 순위·증감·추이를 담은 랭킹 리스트 */
-export function RankedLibraries({ items, domain }: RankedLibrariesProps) {
+export function RankedLibraries({ items, domain, mode = 'growth' }: RankedLibrariesProps) {
+  const showGrowth = mode === 'growth';
   const t = useTranslations('common');
 
   return (
@@ -25,7 +29,12 @@ export function RankedLibraries({ items, domain }: RankedLibrariesProps) {
         <li key={library.libraryName}>
           <Link
             href={{ pathname: `/libraries/${encodeURIComponent(library.libraryName)}`, query: { domain } }}
-            className="group grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-3.5 sm:grid-cols-[2rem_minmax(0,1fr)_6rem_5rem_6rem] sm:gap-x-4"
+            className={cn(
+              'group grid items-center gap-x-3 gap-y-1 py-3.5 sm:gap-x-4',
+              showGrowth
+                ? 'grid-cols-[1.75rem_minmax(0,1fr)_auto] sm:grid-cols-[2rem_minmax(0,1fr)_6rem_5rem_6rem]'
+                : 'grid-cols-[1.75rem_minmax(0,1fr)_auto] sm:grid-cols-[2rem_minmax(0,1fr)_auto]',
+            )}
           >
             <span className="font-display text-lg font-semibold tabular-nums text-muted-foreground">{index + 1}</span>
 
@@ -33,18 +42,26 @@ export function RankedLibraries({ items, domain }: RankedLibrariesProps) {
               <span className="block truncate font-medium group-hover:underline group-hover:underline-offset-4">
                 {library.libraryName}
               </span>
-              <span className="block text-xs text-muted-foreground sm:hidden">
+              {showGrowth && (
+                <span className="block text-xs text-muted-foreground sm:hidden">
+                  {t('reposCount', { count: library.usageCount })}
+                </span>
+              )}
+            </span>
+
+            {showGrowth ? (
+              <>
+                <GrowthBadge rate={library.growthRate} className="justify-self-end text-sm sm:order-4" />
+                <span className="hidden justify-self-end text-sm tabular-nums text-muted-foreground sm:order-3 sm:block">
+                  {t('reposCount', { count: library.usageCount })}
+                </span>
+                <Sparkline values={trend} className="hidden text-muted-foreground sm:order-2 sm:block sm:justify-self-end" />
+              </>
+            ) : (
+              <span className="justify-self-end text-sm tabular-nums text-muted-foreground">
                 {t('reposCount', { count: library.usageCount })}
               </span>
-            </span>
-
-            <GrowthBadge rate={library.growthRate} className="justify-self-end text-sm sm:order-4" />
-
-            <span className="hidden justify-self-end text-sm tabular-nums text-muted-foreground sm:order-3 sm:block">
-              {t('reposCount', { count: library.usageCount })}
-            </span>
-
-            <Sparkline values={trend} className="hidden text-muted-foreground sm:order-2 sm:block sm:justify-self-end" />
+            )}
           </Link>
         </li>
       ))}

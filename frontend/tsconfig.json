@@ -35,8 +35,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.mjs",
-    "next.config.js",
-    ".next-verify/types/**/*.ts"
+    "next.config.js"
   ],
   "exclude": [
     "node_modules"

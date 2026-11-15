@@ -40,7 +40,8 @@ class LibraryController(
             .findRankByDomainAndMonth(domain, yearMonth, PageRequest.of(page, size))
             .map { LibraryRankDto.from(it) }
 
-        return ApiResponse.ok(PagedResult(content = items, page = page, size = size))
+        val total = libraryUsageRepository.countByDomainAndCollectedMonth(domain, yearMonth)
+        return ApiResponse.ok(PagedResult(content = items, page = page, size = size, totalElements = total.toInt()))
     }
 
     @Operation(

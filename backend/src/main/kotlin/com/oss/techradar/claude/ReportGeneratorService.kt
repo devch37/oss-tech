@@ -1,11 +1,10 @@
 package com.oss.techradar.claude
 
-import com.oss.techradar.claude.dto.ClaudeRequest
-import com.oss.techradar.config.WebClientProperties
 import com.oss.techradar.crawler.CrawlDomains
 import com.oss.techradar.domain.LibraryUsage
 import com.oss.techradar.domain.MonthlyReport
 import com.oss.techradar.domain.ReportLanguage
+import com.oss.techradar.llm.ReportLlm
 import com.oss.techradar.repository.LibraryUsageRepository
 import com.oss.techradar.repository.MonthlyReportRepository
 import kotlinx.coroutines.CoroutineScope
@@ -22,10 +21,9 @@ import java.time.YearMonth
 
 @Service
 class ReportGeneratorService(
-    private val anthropicWebClient: AnthropicWebClient,
+    private val reportLlm: ReportLlm,
     private val libraryUsageRepository: LibraryUsageRepository,
     private val monthlyReportRepository: MonthlyReportRepository,
-    private val props: WebClientProperties,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val reportScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -53,15 +51,9 @@ class ReportGeneratorService(
         val rising   = top20.filter { it.growthRate >= 20.0 }
         val declining = top20.filter { it.growthRate <= -10.0 }
 
-        // 3. 프롬프트 구성 + Claude API 호출
+        // 3. 프롬프트 구성 + LLM 호출 (제공자는 report.llm-provider: openai | claude)
         val prompt = buildPrompt(language, domain, month, top20, rising, declining)
-        val request = ClaudeRequest(
-            model = props.claude.model,
-            maxTokens = 4096,
-            system = systemPromptFor(language),
-            messages = listOf(ClaudeRequest.Message(role = "user", content = prompt)),
-        )
-        val content = anthropicWebClient.sendMessage(request).extractText()
+        val content = reportLlm.generate(systemPromptFor(language), prompt)
 
         log.info("[$domain] $month (${language.code}) 리포트 생성 완료 (${content.length}자)")
 

@@ -29,6 +29,9 @@ export async function generateMetadata({ params }: HomeProps): Promise<Metadata>
   return { alternates: buildAlternates('/', locale) };
 }
 
+// 증가율 순위는 전체 라이브러리를 대상으로 계산해야 하므로 상위 N개로 자르지 않는다
+const LIBRARY_FETCH_SIZE = 1000;
+
 const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8089';
 
 async function loadHome(domain: string, locale: Locale) {
@@ -38,26 +41,36 @@ async function loadHome(domain: string, locale: Locale) {
   const [domains, repos, libsNow, libsPrev, reportsOwn, reportsOther] = await Promise.allSettled([
     getDomains(),
     getRepositories({ domain, sort: 'score', size: 60 }),
-    getLibraries({ domain, month: thisMonth, size: 100 }),
-    getLibraries({ domain, month: prevMonth, size: 100 }),
+    getLibraries({ domain, month: thisMonth, size: LIBRARY_FETCH_SIZE }),
+    getLibraries({ domain, month: prevMonth, size: LIBRARY_FETCH_SIZE }),
     getReports(domain, locale),
     getReports(domain, otherLang),
   ]);
 
   // 이번 달 집계가 아직 없으면(월초) 지난달 데이터를 보여준다
   const ok = <T,>(r: PromiseSettledResult<T>) => (r.status === 'fulfilled' ? r.value : null);
-  const nowLibs = ok(libsNow)?.content ?? [];
-  const useCurrent = nowLibs.length > 0;
-  const libraries = useCurrent ? nowLibs : (ok(libsPrev)?.content ?? []);
+  const nowPage = ok(libsNow);
+  const useCurrent = (nowPage?.content.length ?? 0) > 0;
+  const page = useCurrent ? nowPage : ok(libsPrev);
+  const libraries = page?.content ?? [];
   const month = useCurrent ? thisMonth : prevMonth;
 
-  // 스파크라인용 추이 — 상위 8개만 병렬 조회
-  const rising = libraries
-    .filter((l) => l.growthRate > 0)
-    .sort((a, b) => b.growthRate - a.growthRate)
-    .slice(0, 8);
-  const trendResults = await Promise.allSettled(rising.map((l) => getLibraryTrend(l.libraryName, domain)));
-  const rankedLibraries: RankedLibrary[] = rising.map((library, i) => {
+  // 지난달 데이터가 하나도 없으면(첫 수집) 모든 증가율이 +100%라 의미가 없다 → 사용량 순위로 대체
+  const hasBaseline = libraries.some((l) => l.prevMonthCount > 0);
+  const rankingMode: 'growth' | 'usage' = hasBaseline ? 'growth' : 'usage';
+
+  const top = hasBaseline
+    ? libraries
+        .filter((l) => l.prevMonthCount > 0 && l.growthRate > 0)
+        .sort((a, b) => b.growthRate - a.growthRate || b.usageCount - a.usageCount)
+        .slice(0, 8)
+    : [...libraries].sort((a, b) => b.usageCount - a.usageCount).slice(0, 8);
+
+  // 스파크라인용 추이 — 증가율 순위일 때만 상위 8개를 병렬 조회
+  const trendResults = hasBaseline
+    ? await Promise.allSettled(top.map((l) => getLibraryTrend(l.libraryName, domain)))
+    : [];
+  const rankedLibraries: RankedLibrary[] = top.map((library, i) => {
     const tr = trendResults[i];
     const points = tr && tr.status === 'fulfilled' ? tr.value.trend : [];
     return { library, trend: points.slice(-6).map((p) => p.usageCount) };
@@ -74,7 +87,8 @@ async function loadHome(domain: string, locale: Locale) {
     backendDown: [domains, repos, libsNow].every((r) => r.status === 'rejected'),
     repositories: ok(repos)?.content ?? [],
     repoCount: ok(domains)?.find((d) => d.domain === domain)?.repositoryCount ?? ok(repos)?.content.length ?? 0,
-    libraryCount: libraries.length,
+    libraryCount: page?.totalElements ?? libraries.length,
+    rankingMode,
     month,
     rankedLibraries,
     latestMeta,
@@ -153,14 +167,19 @@ export default async function HomePage({ params, searchParams }: HomeProps) {
           <section className="grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
             <div className="space-y-4">
               <div className="space-y-1">
-                <h2 className="font-display text-2xl font-semibold tracking-tight">{t('rising.title')}</h2>
+                <h2 className="font-display text-2xl font-semibold tracking-tight">
+                  {data.rankingMode === 'growth' ? t('rising.title') : t('rising.baseline.title')}
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  {t('rising.description', { domain: domainLabel, month: formatMonth(data.month, locale) })}
+                  {t(data.rankingMode === 'growth' ? 'rising.description' : 'rising.baseline.description', {
+                    domain: domainLabel,
+                    month: formatMonth(data.month, locale),
+                  })}
                 </p>
               </div>
 
               {data.rankedLibraries.length > 0 ? (
-                <RankedLibraries items={data.rankedLibraries} domain={domain} />
+                <RankedLibraries items={data.rankedLibraries} domain={domain} mode={data.rankingMode} />
               ) : (
                 <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
                   {t('rising.empty')}

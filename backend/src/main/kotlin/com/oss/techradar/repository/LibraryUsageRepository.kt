@@ -41,6 +41,9 @@ interface LibraryUsageRepository : JpaRepository<LibraryUsage, Long> {
         domain: String,
     ): List<LibraryUsage>
 
+    /** 페이지네이션 응답의 totalElements 용 */
+    fun countByDomainAndCollectedMonth(domain: String, collectedMonth: YearMonth): Long
+
     fun findByDomainAndLibraryNameAndCollectedMonth(
         domain: String,
         libraryName: String,

@@ -35,7 +35,7 @@
     "security": "Security"
   },
   "footer": {
-    "text": "Data comes from the GitHub API and is refreshed daily. Monthly reports are written by Claude."
+    "text": "Data comes from the GitHub API and is refreshed daily. Monthly reports are written by AI."
   },
   "common": {
     "retry": "Try again",
@@ -80,7 +80,11 @@
       "title": "Fastest-growing libraries",
       "description": "Used by more {domain} repositories than last month ({month}).",
       "viewAll": "See all libraries",
-      "empty": "Nothing has grown this month yet. Check back after the next crawl."
+      "empty": "Nothing has grown this month yet. Check back after the next crawl.",
+      "baseline": {
+        "title": "Most-used libraries",
+        "description": "Growth needs two months of data, so for now these are ranked by how many {domain} repositories use them ({month})."
+      }
     },
     "report": {
       "title": "Latest report",
@@ -142,7 +146,8 @@
       "description": "Library counts appear after the crawler has parsed dependency files for this domain."
     },
     "noMatch": "No library matches “{query}”.",
-    "error": "Couldn't load libraries. Make sure the backend is running, then reload."
+    "error": "Couldn't load libraries. Make sure the backend is running, then reload.",
+    "new": "New"
   },
   "libraryDetail": {
     "back": "All libraries",
@@ -192,7 +197,7 @@
   },
   "reports": {
     "title": "Reports",
-    "description": "A monthly write-up of what changed in each domain, drafted by Claude from the library data.",
+    "description": "A monthly write-up of what changed in each domain, drafted by AI from the library data.",
     "generatedOn": "Generated {date}",
     "read": "Read report",
     "cardTitle": "{domain} trends, {month}",
@@ -208,7 +213,7 @@
     "back": "All reports",
     "title": "{domain} trends, {month}",
     "generated": "Generated {date}",
-    "writtenBy": "Written by Claude from {month} library data",
+    "writtenBy": "Written by AI from {month} library data",
     "share": "Copy link",
     "copied": "Link copied",
     "olderReport": "Older report",

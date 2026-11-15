@@ -49,7 +49,7 @@ export default async function LibraryDetailPage({ params, searchParams }: Props)
 
   const [trendResult, librariesResult, repositoriesResult] = await Promise.allSettled([
     getLibraryTrend(libraryName, domain),
-    getLibraries({ domain, month, size: 100 }),
+    getLibraries({ domain, month, size: 1000 }),
     getRepositories({ domain, sort: 'score', size: 8 }),
   ]);
 
@@ -62,7 +62,8 @@ export default async function LibraryDetailPage({ params, searchParams }: Props)
   const current = allLibraries.find((l) => l.libraryName === libraryName);
   const usageNow = current?.usageCount ?? lastPoint?.usageCount ?? null;
   const usagePrev = current?.prevMonthCount ?? (trend.length > 1 ? (trend[trend.length - 2]?.usageCount ?? null) : null);
-  const growthRate = current?.growthRate ?? null;
+  // 지난달 사용량이 0이면 증가율(+100%)은 의미가 없으므로 표시하지 않는다
+  const growthRate = current && current.prevMonthCount > 0 ? current.growthRate : null;
   const shownMonth = current ? month : (lastPoint?.month ?? month);
 
   const coLibraries = allLibraries

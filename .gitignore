@@ -256,3 +256,6 @@ gradle-app.setting
 
 # 검증용 별도 빌드 폴더 (NEXT_DIST_DIR)
 .next-*
+
+# Claude Code 개인 설정 (로컬 절대경로/권한 목록 포함)
+.claude/settings.local.json

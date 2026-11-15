@@ -169,7 +169,11 @@ export function LibraryListClient({
                       {formatNumber(lib.prevMonthCount, locale)}
                     </td>
                     <td className="py-3.5 text-right">
-                      <GrowthBadge rate={lib.growthRate} className="justify-end" />
+                      {lib.prevMonthCount === 0 ? (
+                        <span className="text-sm font-medium text-muted-foreground">{t('new')}</span>
+                      ) : (
+                        <GrowthBadge rate={lib.growthRate} className="justify-end" />
+                      )}
                     </td>
                   </tr>
                 );

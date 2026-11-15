@@ -1,5 +1,6 @@
 package com.oss.techradar.common
 
+import com.oss.techradar.llm.LlmUnavailableException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MissingServletRequestParameterException
@@ -27,6 +28,14 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleMissingParam(e: MissingServletRequestParameterException): ApiResponse<Nothing> =
         ApiResponse.error("MISSING_PARAMETER", "Required parameter '${e.parameterName}' is missing")
+
+    /** API 키 누락·크레딧 소진 등 사용자가 조치해야 하는 LLM 문제 — 원인과 해결 방법을 그대로 알려준다 */
+    @ExceptionHandler(LlmUnavailableException::class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    fun handleLlmUnavailable(e: LlmUnavailableException): ApiResponse<Nothing> {
+        log.warn("LLM unavailable: ${e.message}")
+        return ApiResponse.error("LLM_UNAVAILABLE", e.message ?: "LLM provider is unavailable")
+    }
 
     @ExceptionHandler(WebClientResponseException::class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)

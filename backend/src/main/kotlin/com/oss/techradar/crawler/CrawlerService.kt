@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -36,6 +37,8 @@ class CrawlerService(
     private val activeLevelCalculator: ActiveLevelCalculator,
     private val dependencyParserRegistry: DependencyParserRegistry,
     private val libraryAggregationService: LibraryAggregationService,
+    /** 도메인(topic)당 수집할 레포 수. 토큰 없이 시험할 때는 CRAWL_REPOS_PER_DOMAIN=3 처럼 낮춘다. */
+    @Value("\${crawler.repos-per-domain:30}") private val reposPerDomain: Int,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val crawlScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -47,7 +50,7 @@ class CrawlerService(
             return
         }
 
-        val items = gitHubApiClient.searchRepositories(topic, perPage = REPOS_PER_DOMAIN)
+        val items = gitHubApiClient.searchRepositories(topic, perPage = reposPerDomain.coerceIn(1, 100))
         log.info("[$domain] topic:$topic 검색 결과 ${items.size}개 레포 수집 시작")
 
         val sinceIso = Instant.now().minus(30, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS).toString()
@@ -154,7 +157,6 @@ class CrawlerService(
     }
 
     companion object {
-        private const val REPOS_PER_DOMAIN = 30
         private const val REPO_PROCESSING_DELAY_MS = 300L
 
         /** 루트 경로 기준으로만 탐색한다 (모노레포 서브디렉터리는 v1 범위 밖) */
