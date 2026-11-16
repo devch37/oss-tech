@@ -5,6 +5,7 @@ import type {
   Library,
   LibraryTrend,
   MonthlyReport,
+  Overview,
   PagedResult,
   ReportMeta,
   Repository,
@@ -70,6 +71,13 @@ function buildQuery(params: Record<string, string | number | undefined>): string
 }
 
 // ─── Endpoint Functions ───────────────────────────────────────────────────────
+
+/** GET /api/v1/overview — 전 도메인 대시보드 요약 */
+export async function getOverview(): Promise<Overview> {
+  return apiFetch<Overview>('/api/v1/overview', {
+    next: { revalidate: 300 },
+  } as RequestInit);
+}
 
 /** GET /api/v1/domains */
 export async function getDomains(): Promise<Domain[]> {

@@ -4,16 +4,23 @@ import { ArrowRight } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { isLocale, routing, type Locale } from '@/i18n/routing';
-import { getDomains, getLibraries, getLibraryTrend, getReport, getReports, getRepositories } from '@/lib/api-client';
-import { resolveDomain } from '@/lib/domains';
+import { getDomains, getLibraries, getReport, getReports, getRepositories } from '@/lib/api-client';
+import { isDomainKey, resolveDomain } from '@/lib/domains';
+import { languageShares, levelCounts, sumRepositories } from '@/lib/dashboard';
 import { buildAlternates } from '@/lib/seo';
-import { extractPreview, formatMonth, formatNumber, lastMonths } from '@/lib/utils';
+import { extractFirstParagraph, formatCompact, formatMonth, formatNumber, lastMonths } from '@/lib/utils';
 import type { ReportLanguage } from '@/types/api';
 import { DomainTabs } from '@/components/DomainTabs';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorCard } from '@/components/ErrorBoundary';
 import { RadarPlot } from '@/components/RadarPlot';
-import { RankedLibraries, type RankedLibrary } from '@/components/RankedLibraries';
+import { Highlights } from '@/components/Highlights';
+import { LanguageBars } from '@/components/LanguageBars';
+import { LevelBar } from '@/components/LevelBar';
+import { OverviewDashboard } from '@/components/OverviewDashboard';
+import { StatStrip } from '@/components/StatStrip';
+import { LibraryBars } from '@/components/LibraryBars';
+import { ProjectBars } from '@/components/ProjectBars';
 import { buttonVariants } from '@/components/ui/button-variants';
 
 interface HomeProps {
@@ -55,26 +62,8 @@ async function loadHome(domain: string, locale: Locale) {
   const libraries = page?.content ?? [];
   const month = useCurrent ? thisMonth : prevMonth;
 
-  // 지난달 데이터가 하나도 없으면(첫 수집) 모든 증가율이 +100%라 의미가 없다 → 사용량 순위로 대체
+  // 지난달 데이터가 하나도 없으면(첫 수집) 모든 증가율이 +100%라 의미가 없다 → 증가율 보기를 잠근다
   const hasBaseline = libraries.some((l) => l.prevMonthCount > 0);
-  const rankingMode: 'growth' | 'usage' = hasBaseline ? 'growth' : 'usage';
-
-  const top = hasBaseline
-    ? libraries
-        .filter((l) => l.prevMonthCount > 0 && l.growthRate > 0)
-        .sort((a, b) => b.growthRate - a.growthRate || b.usageCount - a.usageCount)
-        .slice(0, 8)
-    : [...libraries].sort((a, b) => b.usageCount - a.usageCount).slice(0, 8);
-
-  // 스파크라인용 추이 — 증가율 순위일 때만 상위 8개를 병렬 조회
-  const trendResults = hasBaseline
-    ? await Promise.allSettled(top.map((l) => getLibraryTrend(l.libraryName, domain)))
-    : [];
-  const rankedLibraries: RankedLibrary[] = top.map((library, i) => {
-    const tr = trendResults[i];
-    const points = tr && tr.status === 'fulfilled' ? tr.value.trend : [];
-    return { library, trend: points.slice(-6).map((p) => p.usageCount) };
-  });
 
   // 최신 리포트: 현재 언어 우선, 없으면 다른 언어로 폴백
   const own = ok(reportsOwn) ?? [];
@@ -87,10 +76,10 @@ async function loadHome(domain: string, locale: Locale) {
     backendDown: [domains, repos, libsNow].every((r) => r.status === 'rejected'),
     repositories: ok(repos)?.content ?? [],
     repoCount: ok(domains)?.find((d) => d.domain === domain)?.repositoryCount ?? ok(repos)?.content.length ?? 0,
+    libraries,
     libraryCount: page?.totalElements ?? libraries.length,
-    rankingMode,
+    hasBaseline,
     month,
-    rankedLibraries,
     latestMeta,
     latestReport,
     reportFallback,
@@ -102,42 +91,50 @@ export default async function HomePage({ params, searchParams }: HomeProps) {
   const locale = params.locale;
   setRequestLocale(locale);
 
+  // ?domain= 이 없거나 알 수 없는 값이면 전체 대시보드, 분야 이름이면 그 분야 상세
+  if (!isDomainKey(searchParams.domain)) {
+    return (
+      <div className="space-y-12">
+        <Suspense fallback={<div className="h-10" />}>
+          <DomainTabs withOverview className="border-b border-border" />
+        </Suspense>
+        <OverviewDashboard locale={locale} />
+      </div>
+    );
+  }
+
   const domain = resolveDomain(searchParams.domain);
-  const [t, td] = await Promise.all([
+  const [t, td, to] = await Promise.all([
     getTranslations({ locale, namespace: 'home' }),
     getTranslations({ locale, namespace: 'domains' }),
+    getTranslations({ locale, namespace: 'overview' }),
   ]);
   const domainLabel = td(domain);
 
   const data = await loadHome(domain, locale);
   const hasPlotData = data.repositories.some((r) => r.score !== null && r.stars > 0);
+  const totals = sumRepositories(data.repositories);
 
   return (
-    <div className="space-y-12 pb-4">
+    <div className="space-y-14 pb-4">
       <Suspense fallback={<div className="h-10" />}>
-        <DomainTabs className="border-b border-border" />
+        <DomainTabs withOverview className="border-b border-border" />
       </Suspense>
 
-      {/* ─── 히어로: 제목 + 핵심 수치 ─────────────────────────────────────────── */}
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-        <div className="max-w-2xl space-y-4">
-          <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-            {t('title', { domain: domainLabel })}
-          </h1>
-          <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">{t('intro')}</p>
-        </div>
-
-        {!data.backendDown && (
-          <dl className="flex gap-8 lg:gap-10">
-            <div>
-              <dd className="font-display text-4xl font-semibold tabular-nums">{formatNumber(data.repoCount, locale)}</dd>
-              <dt className="mt-1 max-w-[9rem] text-sm text-muted-foreground">{t('figures.repositories')}</dt>
-            </div>
-            <div>
-              <dd className="font-display text-4xl font-semibold tabular-nums">{formatNumber(data.libraryCount, locale)}</dd>
-              <dt className="mt-1 max-w-[9rem] text-sm text-muted-foreground">{t('figures.libraries')}</dt>
-            </div>
-          </dl>
+      {/* ─── 제목: 이 페이지가 무엇인지 한 줄 ─────────────────────────────────── */}
+      <section className="max-w-3xl space-y-3">
+        <h1 className="font-display text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
+          {t('title', { domain: domainLabel })}
+        </h1>
+        <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">{t('intro')}</p>
+        {!data.backendDown && hasPlotData && (
+          <p className="text-sm text-muted-foreground">
+            {t('scope', {
+              repos: data.repoCount,
+              libs: data.libraryCount,
+              month: formatMonth(data.month, locale),
+            })}
+          </p>
         )}
       </section>
 
@@ -152,71 +149,123 @@ export default async function HomePage({ params, searchParams }: HomeProps) {
         />
       ) : (
         <>
-          {/* ─── 레이더 플롯 ─────────────────────────────────────────────────── */}
+          {/* ─── 이 분야의 핵심 수치 ────────────────────────────────────────── */}
+          <StatStrip
+            items={[
+              { label: t('stats.projects'), value: formatNumber(data.repoCount, locale) },
+              { label: t('stats.stars'), value: formatCompact(totals.stars, locale) },
+              { label: t('stats.commits'), value: formatCompact(totals.commits30d, locale) },
+              { label: t('stats.libraries'), value: formatNumber(data.libraryCount, locale) },
+            ]}
+          />
+
+          {/* ─── 한눈에 보기: 뭐가 뜨고 있는지 세 문장으로 ────────────────────── */}
+          <Highlights
+            locale={locale}
+            domain={domain}
+            repositories={data.repositories}
+            libraries={data.libraries}
+            hasBaseline={data.hasBaseline}
+          />
+
+          {/* ─── 질문 1: 어떤 프로젝트가 활발한가 ───────────────────────────── */}
+          <section aria-labelledby="projects-heading" className="space-y-5">
+            <div className="max-w-2xl space-y-1.5">
+              <h2 id="projects-heading" className="font-display text-2xl font-semibold tracking-tight">
+                {t('projects.title')}
+              </h2>
+              <p className="text-sm leading-relaxed text-muted-foreground">{t('projects.description')}</p>
+            </div>
+            <ProjectBars repositories={data.repositories} />
+            <Link
+              href={{ pathname: '/repositories', query: { domain } }}
+              className="inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
+            >
+              {t('projects.viewAll')}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </section>
+
+          {/* ─── 질문 2: 어떤 라이브러리를 쓰는가 ───────────────────────────── */}
+          <section aria-labelledby="libs-heading" className="space-y-5">
+            <div className="max-w-2xl space-y-1.5">
+              <h2 id="libs-heading" className="font-display text-2xl font-semibold tracking-tight">
+                {t('libs.title')}
+              </h2>
+              <p className="text-sm leading-relaxed text-muted-foreground">{t('libs.description')}</p>
+            </div>
+            {data.libraries.length > 0 ? (
+              <LibraryBars libraries={data.libraries} domain={domain} hasBaseline={data.hasBaseline} />
+            ) : (
+              <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
+                {t('libs.noGrowth')}
+              </p>
+            )}
+            <Link
+              href={{ pathname: '/libraries', query: { domain } }}
+              className="inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
+            >
+              {t('libs.viewAll')}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </section>
+
+          {/* ─── 이 분야 프로젝트의 활동 분포와 언어 ─────────────────────────── */}
+          <div className="grid gap-14 lg:grid-cols-2 lg:gap-16">
+            <section aria-labelledby="levels-heading" className="space-y-5">
+              <div className="max-w-2xl space-y-1.5">
+                <h2 id="levels-heading" className="font-display text-2xl font-semibold tracking-tight">
+                  {to('levels.title')}
+                </h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">{to('levels.description')}</p>
+              </div>
+              <LevelBar levels={levelCounts(data.repositories)} />
+            </section>
+
+            <section aria-labelledby="languages-heading" className="space-y-5">
+              <div className="max-w-2xl space-y-1.5">
+                <h2 id="languages-heading" className="font-display text-2xl font-semibold tracking-tight">
+                  {to('languages.title')}
+                </h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">{to('languages.description')}</p>
+              </div>
+              <LanguageBars languages={languageShares(data.repositories)} total={totals.repositories} />
+            </section>
+          </div>
+
+          {/* ─── 이번 달 리포트 ─────────────────────────────────────────────── */}
+          <section aria-labelledby="report-heading" className="max-w-3xl space-y-3 border-t border-border pt-10">
+            <h2 id="report-heading" className="font-display text-2xl font-semibold tracking-tight">
+              {t('report.title')}
+            </h2>
+            {data.latestMeta && data.latestReport ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  {formatMonth(data.latestMeta.reportMonth, locale, 'long')}, {domainLabel}
+                </p>
+                <p className="leading-relaxed">{extractFirstParagraph(data.latestReport.content, 260)}</p>
+                {data.reportFallback && <p className="text-sm text-muted-foreground">{t('report.fallback')}</p>}
+                <Link
+                  href={`/reports/${data.latestMeta.id}`}
+                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                >
+                  {t('report.read')}
+                </Link>
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">{t('report.empty', { domain: domainLabel })}</p>
+            )}
+          </section>
+
+          {/* ─── 전체 지도: 별·활동량 분포 (자세히 보고 싶은 사람용) ─────────── */}
           <section aria-labelledby="radar-heading" className="space-y-4">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+            <div className="max-w-2xl space-y-1.5">
               <h2 id="radar-heading" className="font-display text-2xl font-semibold tracking-tight">
                 {t('radar.title')}
               </h2>
-              <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">{t('radar.description')}</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">{t('radar.description')}</p>
             </div>
             <RadarPlot repositories={data.repositories} />
-          </section>
-
-          {/* ─── 라이브러리 랭킹 + 최신 리포트 ───────────────────────────────── */}
-          <section className="grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h2 className="font-display text-2xl font-semibold tracking-tight">
-                  {data.rankingMode === 'growth' ? t('rising.title') : t('rising.baseline.title')}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {t(data.rankingMode === 'growth' ? 'rising.description' : 'rising.baseline.description', {
-                    domain: domainLabel,
-                    month: formatMonth(data.month, locale),
-                  })}
-                </p>
-              </div>
-
-              {data.rankedLibraries.length > 0 ? (
-                <RankedLibraries items={data.rankedLibraries} domain={domain} mode={data.rankingMode} />
-              ) : (
-                <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
-                  {t('rising.empty')}
-                </p>
-              )}
-
-              <Link
-                href={{ pathname: '/libraries', query: { domain } }}
-                className="inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
-              >
-                {t('rising.viewAll')}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-
-            <aside className="space-y-4 lg:border-l lg:border-border lg:pl-12">
-              <h2 className="font-display text-2xl font-semibold tracking-tight">{t('report.title')}</h2>
-              {data.latestMeta && data.latestReport ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    {formatMonth(data.latestMeta.reportMonth, locale, 'long')} · {domainLabel}
-                  </p>
-                  <p className="line-clamp-6 leading-relaxed">{extractPreview(data.latestReport.content, 320)}</p>
-                  {data.reportFallback && <p className="text-sm text-muted-foreground">{t('report.fallback')}</p>}
-                  <Link
-                    href={`/reports/${data.latestMeta.id}`}
-                    className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                  >
-                    {t('report.read')}
-                  </Link>
-                </div>
-              ) : (
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {t('report.empty', { domain: domainLabel })}
-                </p>
-              )}
-            </aside>
           </section>
         </>
       )}

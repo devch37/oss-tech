@@ -143,3 +143,12 @@ export function extractPreview(markdown: string, maxLength = 180): string {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).replace(/\s\S*$/, '') + '…';
 }
+
+/** 마크다운에서 첫 번째 본문 문단만 뽑아 미리보기로 쓴다 (제목·표만 있는 블록은 건너뜀) */
+export function extractFirstParagraph(markdown: string, maxLength = 220): string {
+  for (const block of markdown.split(/\n{2,}/)) {
+    const preview = extractPreview(block, maxLength);
+    if (preview) return preview;
+  }
+  return '';
+}

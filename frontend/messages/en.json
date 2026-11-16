@@ -35,7 +35,7 @@
     "security": "Security"
   },
   "footer": {
-    "text": "Data comes from the GitHub API and is refreshed daily. Monthly reports are written by AI."
+    "text": "Data comes from the GitHub API and is refreshed daily. Monthly reports summarize the library data."
   },
   "common": {
     "retry": "Try again",
@@ -65,26 +65,42 @@
     "formula": "Activity score = (commits × 3 + merged PRs × 2 + closed issues) ÷ ln(stars + 1), over the last 30 days."
   },
   "home": {
-    "title": "What's rising in {domain}",
-    "intro": "Repositories plotted by popularity and recent activity, plus the libraries they use that are growing fastest this month.",
-    "figures": {
-      "repositories": "repositories tracked",
-      "libraries": "libraries analyzed",
-      "month": "data for {month}"
+    "title": "What's hot in {domain}",
+    "intro": "The most active open-source projects on GitHub, and the libraries they build with. Updated daily.",
+    "scope": "Tracking {repos, plural, one {# project} other {# projects}} and {libs, plural, one {# library} other {# libraries}}. Data for {month}.",
+    "highlights": {
+      "label": "At a glance",
+      "mostActive": "<link>{name}</link> is the most active project: {commits, plural, one {# commit} other {# commits}} and {prs, plural, one {# merged PR} other {# merged PRs}} in the last 30 days.",
+      "mostStarred": "<link>{name}</link> has the most stars among projects that are still active: {stars}.",
+      "topGrowing": "<link>{name}</link> is the fastest-growing library: used by {count, plural, one {# project} other {# projects}}, up {rate} from last month.",
+      "topUsed": "<link>{name}</link> is the most-used library: {count, plural, one {# project depends} other {# projects depend}} on it."
+    },
+    "projects": {
+      "title": "Which projects are most active?",
+      "description": "A longer bar means more is going on. Activity counts commits, merged pull requests and closed issues from the last 30 days, adjusted for project size.",
+      "viewBy": "Rank by",
+      "byActivity": "Activity",
+      "byStars": "Stars",
+      "commits": "{count, plural, one {# commit} other {# commits}}",
+      "prs": "{count, plural, one {# PR merged} other {# PRs merged}}",
+      "stars": "{count} stars",
+      "viewAll": "See all repositories"
+    },
+    "libs": {
+      "title": "Which libraries do they build with?",
+      "description": "The longer the bar, the more of the tracked projects depend on that library.",
+      "viewBy": "Rank by",
+      "byUsage": "Most used",
+      "byGrowth": "Fastest growing",
+      "baselineNote": "Growth needs two months of data. It appears after next month's crawl.",
+      "projectsUsing": "{count, plural, one {# project} other {# projects}}",
+      "new": "New",
+      "noGrowth": "No library has grown since last month.",
+      "viewAll": "See all libraries"
     },
     "radar": {
-      "title": "Stars × activity",
-      "description": "Each dot is a repository. The further right, the more stars. The higher, the more commits, merged PRs and closed issues in the last 30 days."
-    },
-    "rising": {
-      "title": "Fastest-growing libraries",
-      "description": "Used by more {domain} repositories than last month ({month}).",
-      "viewAll": "See all libraries",
-      "empty": "Nothing has grown this month yet. Check back after the next crawl.",
-      "baseline": {
-        "title": "Most-used libraries",
-        "description": "Growth needs two months of data, so for now these are ranked by how many {domain} repositories use them ({month})."
-      }
+      "title": "Every project on one map",
+      "description": "Each dot is a project. The further right, the more stars. The higher, the more work in the last 30 days."
     },
     "report": {
       "title": "Latest report",
@@ -100,7 +116,14 @@
     "error": {
       "title": "Couldn't reach the data service",
       "description": "Make sure the backend is running, then reload this page."
-    }
+    },
+    "stats": {
+      "projects": "Projects tracked",
+      "stars": "Total stars",
+      "commits": "Commits in the last 30 days",
+      "libraries": "Libraries analyzed"
+    },
+    "backToOverview": "All fields"
   },
   "radar": {
     "ariaLabel": "Scatter plot of {count} repositories by stars and activity score",
@@ -197,7 +220,7 @@
   },
   "reports": {
     "title": "Reports",
-    "description": "A monthly write-up of what changed in each domain, drafted by AI from the library data.",
+    "description": "A monthly summary of what changed in each domain, built from the library data.",
     "generatedOn": "Generated {date}",
     "read": "Read report",
     "cardTitle": "{domain} trends, {month}",
@@ -213,7 +236,7 @@
     "back": "All reports",
     "title": "{domain} trends, {month}",
     "generated": "Generated {date}",
-    "writtenBy": "Written by AI from {month} library data",
+    "writtenBy": "Built from {month} library data",
     "share": "Copy link",
     "copied": "Link copied",
     "olderReport": "Older report",
@@ -233,5 +256,47 @@
     "notFoundTitle": "Page not found",
     "notFoundDescription": "That page doesn't exist or has moved.",
     "goHome": "Back to the radar"
+  },
+  "overview": {
+    "tab": "Overview",
+    "title": "What's hot on GitHub right now",
+    "intro": "The most active open-source projects in six fields, and the libraries they build with. Refreshed daily from the GitHub API.",
+    "scope": "Based on {repos, plural, one {# project} other {# projects}} and {libs, plural, one {# library} other {# libraries}}. Library data for {month}.",
+    "stats": {
+      "projects": "Projects tracked",
+      "stars": "Total stars",
+      "commits": "Commits in the last 30 days",
+      "libraries": "Libraries analyzed"
+    },
+    "hot": {
+      "title": "Most active projects right now",
+      "description": "Across all six fields. A longer bar means more commits, merged pull requests and closed issues in the last 30 days, adjusted for project size."
+    },
+    "fields": {
+      "title": "Six fields at a glance",
+      "description": "Pick a field to see its ranking, libraries and report. The bar shows how active its projects are.",
+      "projects": "{count, plural, one {# project} other {# projects}}",
+      "hottest": "Most active project",
+      "topLibrary": "Most-used library",
+      "usedBy": "in {count, plural, one {# project} other {# projects}}",
+      "stars": "{count} stars in total",
+      "empty": "No data yet",
+      "open": "Open {domain}"
+    },
+    "gems": {
+      "title": "Busier than their stars suggest",
+      "description": "Projects with fewer stars than most in their field, yet among the most active. Worth a look.",
+      "empty": "No standouts yet. This appears once a field has a few projects tracked.",
+      "stars": "{count} stars"
+    },
+    "levels": {
+      "title": "How active are these projects?",
+      "description": "Every tracked project, grouped by its activity over the last 30 days. Darker amber means more active."
+    },
+    "languages": {
+      "title": "What are they written in?",
+      "description": "The main language of each project.",
+      "projects": "{count, plural, one {# project} other {# projects}}"
+    }
   }
 }

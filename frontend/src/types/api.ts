@@ -86,6 +86,39 @@ export interface MonthlyReport extends ReportMeta {
   content: string; // Markdown 전문
 }
 
+// ─── Overview ─────────────────────────────────────────────────────────────────
+
+/** 활동 등급별 레포 수 (S 매우 활발 · A 활발 · B 보통 · C 낮음) */
+export interface LevelCounts {
+  s: number;
+  a: number;
+  b: number;
+  c: number;
+}
+
+export interface DomainOverview {
+  domain: string;
+  repositoryCount: number;
+  totalStars: number;
+  commits30d: number;
+  prsMerged30d: number;
+  levels: LevelCounts;
+  topRepository: Repository | null;
+  libraryCount: number;
+  topLibrary: { name: string; usageCount: number } | null;
+}
+
+/** GET /api/v1/overview → OverviewDto */
+export interface Overview {
+  totals: { repositories: number; stars: number; commits30d: number; prsMerged30d: number; libraries: number };
+  domains: DomainOverview[];
+  topRepositories: Repository[];
+  hiddenGems: Repository[];
+  languages: { language: string; count: number }[];
+  levels: LevelCounts;
+  libraryMonth: string | null;
+}
+
 // ─── Crawl ────────────────────────────────────────────────────────────────────
 
 /** POST /api/v1/crawl/trigger → CrawlTriggerResponse */

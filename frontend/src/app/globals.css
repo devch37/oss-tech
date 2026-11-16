@@ -86,6 +86,11 @@
   h3 {
     text-wrap: balance;
   }
+  /* 한국어는 어절 단위로 줄바꿈해 단어가 중간에서 끊기지 않게 한다 */
+  html[lang='ko'] body {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
   :focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
@@ -185,3 +190,26 @@
 .dark .hljs-variable    { color: #e6edf3; }
 .dark .hljs-deletion    { color: #ffa198; background: #490202; }
 .dark .hljs-addition    { color: #56d364; background: #0f5323; }
+
+/* ─── 막대 차트 — 처음 보일 때 왼쪽에서 한 번 자란다 ──────────────────────────────
+   위에서부터 순서대로 자라 "순위"가 눈에 들어오게 한다. 보기 전환 시에도 다시 재생된다. */
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.bar-fill {
+  transform-origin: left center;
+  animation: bar-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill {
+    animation: none;
+  }
+}
