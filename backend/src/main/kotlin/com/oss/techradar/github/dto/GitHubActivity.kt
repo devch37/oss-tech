@@ -21,3 +21,10 @@ data class GitHubContent(
     val content: String? = null,
     val encoding: String? = null,
 )
+
+/** GET /repos/{owner}/{repo}/contents/ (루트 디렉터리 목록의 항목) */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GitHubContentEntry(
+    val name: String,
+    val type: String? = null,
+)

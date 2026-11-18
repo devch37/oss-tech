@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono
  * Chat Completions 도 계속 지원되지만 OpenAI 는 신규 프로젝트에 Responses 를 권장한다.
  */
 @Component
-@ConditionalOnProperty(name = ["report.llm-provider"], havingValue = "openai", matchIfMissing = true)
+@ConditionalOnProperty(name = ["report.llm-provider"], havingValue = "openai")
 class OpenAiReportLlm(
     @Qualifier("openAiWebClient") private val webClient: WebClient,
     private val props: WebClientProperties,

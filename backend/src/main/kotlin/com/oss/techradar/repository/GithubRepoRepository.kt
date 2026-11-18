@@ -8,7 +8,8 @@ import org.springframework.data.jpa.repository.Query
 
 interface GithubRepoRepository : JpaRepository<GithubRepository, Long> {
 
-    fun findByOwnerAndName(owner: String, name: String): GithubRepository?
+    /** 같은 레포가 여러 도메인(topic)에 걸릴 수 있으므로 도메인까지 포함해 찾는다. */
+    fun findByOwnerAndNameAndDomain(owner: String, name: String, domain: String): GithubRepository?
 
     fun findAllByDomain(domain: String, pageable: Pageable): Page<GithubRepository>
 
@@ -18,8 +19,6 @@ interface GithubRepoRepository : JpaRepository<GithubRepository, Long> {
         countQuery = "SELECT COUNT(r) FROM GithubRepository r WHERE r.domain = :domain",
     )
     fun findTopByDomainOrderByStars(domain: String, pageable: Pageable): Page<GithubRepository>
-
-    fun existsByOwnerAndName(owner: String, name: String): Boolean
 
     /** 도메인별 레포 수 집계 — GET /api/v1/domains 용 */
     @Query("SELECT r.domain AS domain, COUNT(r) AS repositoryCount FROM GithubRepository r GROUP BY r.domain ORDER BY COUNT(r) DESC")

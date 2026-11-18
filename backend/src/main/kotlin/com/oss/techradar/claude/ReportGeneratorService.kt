@@ -5,6 +5,7 @@ import com.oss.techradar.domain.LibraryUsage
 import com.oss.techradar.domain.MonthlyReport
 import com.oss.techradar.domain.ReportLanguage
 import com.oss.techradar.llm.ReportLlm
+import com.oss.techradar.llm.TemplateReportWriter
 import com.oss.techradar.repository.LibraryUsageRepository
 import com.oss.techradar.repository.MonthlyReportRepository
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +22,8 @@ import java.time.YearMonth
 
 @Service
 class ReportGeneratorService(
-    private val reportLlm: ReportLlm,
+    /** report.llm-provider 가 openai/claude 일 때만 존재한다. null 이면 LLM 없이 템플릿으로 작성한다. */
+    private val reportLlm: ReportLlm?,
     private val libraryUsageRepository: LibraryUsageRepository,
     private val monthlyReportRepository: MonthlyReportRepository,
 ) {
@@ -51,9 +53,13 @@ class ReportGeneratorService(
         val rising   = top20.filter { it.growthRate >= 20.0 }
         val declining = top20.filter { it.growthRate <= -10.0 }
 
-        // 3. 프롬프트 구성 + LLM 호출 (제공자는 report.llm-provider: openai | claude)
-        val prompt = buildPrompt(language, domain, month, top20, rising, declining)
-        val content = reportLlm.generate(systemPromptFor(language), prompt)
+        // 3. 본문 작성 — LLM 제공자가 설정돼 있으면 LLM, 아니면 템플릿(비용·API 키 불필요)
+        val content = if (reportLlm != null) {
+            val prompt = buildPrompt(language, domain, month, top20, rising, declining)
+            reportLlm.generate(systemPromptFor(language), prompt)
+        } else {
+            TemplateReportWriter.write(language, domain, month, top20, rising, declining)
+        }
 
         log.info("[$domain] $month (${language.code}) 리포트 생성 완료 (${content.length}자)")
 

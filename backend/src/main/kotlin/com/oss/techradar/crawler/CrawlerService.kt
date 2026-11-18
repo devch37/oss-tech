@@ -50,8 +50,12 @@ class CrawlerService(
             return
         }
 
-        val items = gitHubApiClient.searchRepositories(topic, perPage = reposPerDomain.coerceIn(1, 100))
-        log.info("[$domain] topic:$topic 검색 결과 ${items.size}개 레포 수집 시작")
+        // 목록/문서형 레포를 걸러낼 것을 감안해 여유분을 더 받아 온 뒤 목표 개수만큼 자른다 (검색 호출은 여전히 1번)
+        val target = reposPerDomain.coerceIn(1, 100)
+        val found = gitHubApiClient.searchRepositories(topic, perPage = (target + SEARCH_HEADROOM).coerceAtMost(100))
+        val software = found.filterNot { CrawlDomains.isCuratedList(it.name) }
+        val items = software.take(target)
+        log.info("[$domain] topic:$topic 검색 결과 ${found.size}개 중 목록/문서형 ${found.size - software.size}개 제외, ${items.size}개 레포 수집 시작")
 
         val sinceIso = Instant.now().minus(30, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS).toString()
         val repoToLibraries = mutableMapOf<Long, List<String>>()
@@ -113,7 +117,7 @@ class CrawlerService(
     }
 
     private fun upsertRepository(domain: String, item: GitHubSearchItem): GithubRepository {
-        val existing = githubRepoRepository.findByOwnerAndName(item.owner.login, item.name)
+        val existing = githubRepoRepository.findByOwnerAndNameAndDomain(item.owner.login, item.name, domain)
         val entity = GithubRepository(
             id = existing?.id ?: 0,
             owner = item.owner.login,
@@ -136,7 +140,12 @@ class CrawlerService(
     ): List<String> {
         val libraries = mutableListOf<String>()
 
-        CANDIDATE_DEPENDENCY_FILES.forEach { (path, fileType) ->
+        // 루트 목록을 1번만 조회해 실제로 있는 의존성 파일만 읽는다 (파일마다 찔러보면 레포당 호출이 두세 배가 된다)
+        val rootFiles = runCatching { gitHubApiClient.listRootFileNames(owner, name) }
+            .onFailure { log.warn("$owner/$name 루트 파일 목록 조회 실패, 의존성 수집 건너뜀: ${it.message}") }
+            .getOrDefault(emptySet())
+
+        CANDIDATE_DEPENDENCY_FILES.filter { (path, _) -> path in rootFiles }.forEach { (path, fileType) ->
             val content = gitHubApiClient.getFileContent(owner, name, path) ?: return@forEach
 
             dependencySnapshotRepository.save(
@@ -159,6 +168,9 @@ class CrawlerService(
     companion object {
         private const val REPO_PROCESSING_DELAY_MS = 300L
 
+        /** 목록형 레포 제외 후에도 목표 개수를 채우기 위해 더 받아 오는 검색 결과 수 */
+        private const val SEARCH_HEADROOM = 20
+
         /** 루트 경로 기준으로만 탐색한다 (모노레포 서브디렉터리는 v1 범위 밖) */
         private val CANDIDATE_DEPENDENCY_FILES: List<Pair<String, FileType>> = listOf(
             "build.gradle.kts" to FileType.GRADLE_KTS,
@@ -166,6 +178,12 @@ class CrawlerService(
             "pom.xml" to FileType.MAVEN,
             "package.json" to FileType.NPM,
             "requirements.txt" to FileType.PIP,
+            "pyproject.toml" to FileType.PYPROJECT,
+            "go.mod" to FileType.GO_MOD,
+            "Cargo.toml" to FileType.CARGO,
+            "pubspec.yaml" to FileType.PUBSPEC,
+            "composer.json" to FileType.COMPOSER,
+            "Gemfile" to FileType.GEMFILE,
         )
     }
 }

@@ -65,6 +65,8 @@ export interface Repository {
   commits30d: number | null;
   prsMerged30d: number | null;
   issuesClosed30d: number | null;
+  /** 프로젝트 소개 문구 (영어 원문, 없을 수 있음) */
+  description?: string | null;
 }
 
 // ─── Report ───────────────────────────────────────────────────────────────────
@@ -117,6 +119,56 @@ export interface Overview {
   languages: { language: string; count: number }[];
   levels: LevelCounts;
   libraryMonth: string | null;
+}
+
+// ─── Trends (지금 GitHub 에서 뜨는 것) ─────────────────────────────────────────
+
+/** 새로 뜨는 프로젝트 한 건 */
+export interface TrendRepo {
+  fullName: string; // "owner/name"
+  owner: string;
+  name: string;
+  description: string | null;
+  language: string | null;
+  stars: number;
+  forks: number;
+  ownerType: 'User' | 'Organization' | string | null;
+  createdAt: string | null; // ISO 8601
+}
+
+export interface LanguageTrend {
+  language: string;
+  /** 최근 30일 안에 만들어져 스타 50개 이상 받은 프로젝트 수 */
+  newRepoCount: number;
+  topRepo: TrendRepo | null;
+}
+
+export interface RisingDeveloper {
+  login: string;
+  ownerType: string | null;
+  repoCount: number;
+  totalStars: number;
+  topRepo: TrendRepo;
+}
+
+export interface TopDeveloper {
+  login: string;
+  name: string | null;
+  bio: string | null;
+  followers: number;
+  publicRepos: number;
+}
+
+/** GET /api/v1/trends → TrendsDto */
+export interface Trends {
+  /** 마지막 수집 시각 (UTC). 한 번도 수집하지 않았으면 null */
+  generatedAt: string | null;
+  newRepos: { week: TrendRepo[]; month: TrendRepo[] };
+  languages: LanguageTrend[];
+  risingDevelopers: RisingDeveloper[];
+  topDevelopers: TopDeveloper[];
+  /** 스타가 많고 최근에도 활발한 프로젝트 */
+  popularNow: Repository[];
 }
 
 // ─── Crawl ────────────────────────────────────────────────────────────────────

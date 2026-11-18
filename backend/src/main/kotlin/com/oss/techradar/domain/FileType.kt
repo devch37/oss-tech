@@ -6,4 +6,10 @@ enum class FileType {
     MAVEN,
     NPM,
     PIP,
+    PYPROJECT,
+    GO_MOD,
+    CARGO,
+    PUBSPEC,
+    COMPOSER,
+    GEMFILE,
 }

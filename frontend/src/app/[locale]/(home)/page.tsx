@@ -17,7 +17,7 @@ import { RadarPlot } from '@/components/RadarPlot';
 import { Highlights } from '@/components/Highlights';
 import { LanguageBars } from '@/components/LanguageBars';
 import { LevelBar } from '@/components/LevelBar';
-import { OverviewDashboard } from '@/components/OverviewDashboard';
+import { TrendsHome } from '@/components/TrendsHome';
 import { StatStrip } from '@/components/StatStrip';
 import { LibraryBars } from '@/components/LibraryBars';
 import { ProjectBars } from '@/components/ProjectBars';
@@ -98,7 +98,7 @@ export default async function HomePage({ params, searchParams }: HomeProps) {
         <Suspense fallback={<div className="h-10" />}>
           <DomainTabs withOverview className="border-b border-border" />
         </Suspense>
-        <OverviewDashboard locale={locale} />
+        <TrendsHome locale={locale} />
       </div>
     );
   }

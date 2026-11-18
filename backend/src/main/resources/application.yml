@@ -47,8 +47,11 @@ webclient:
 
 # ─── AI 월간 리포트 ───────────────────────────────────────
 report:
-  # openai(기본) | claude — 리포트를 작성할 LLM 제공자
-  llm-provider: ${LLM_PROVIDER:openai}
+  # none(기본) | openai | claude
+  #   none   : LLM 없이 집계 데이터로 템플릿 리포트를 만든다 (API 키·비용 불필요)
+  #   openai : OpenAI(GPT)가 해설을 곁들인 리포트를 쓴다 — OPENAI_API_KEY 필요
+  #   claude : Claude 가 쓴다 — CLAUDE_API_KEY 필요
+  llm-provider: ${LLM_PROVIDER:none}
 
 # ─── 크롤러 ───────────────────────────────────────────────
 crawler:

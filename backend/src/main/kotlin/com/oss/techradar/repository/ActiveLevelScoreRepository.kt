@@ -25,5 +25,16 @@ interface ActiveLevelScoreRepository : JpaRepository<ActiveLevelScore, Long> {
     )
     fun findLatestTopByDomain(domain: String, pageable: Pageable): List<ActiveLevelScore>
 
+    /** 모든 레포의 최신 점수 (대시보드 집계용). 레포 정보를 함께 가져와 지연 로딩 쿼리가 반복되지 않게 한다. */
+    @Query(
+        """
+        SELECT a FROM ActiveLevelScore a JOIN FETCH a.repository r
+        WHERE a.calculatedAt = (
+            SELECT MAX(a2.calculatedAt) FROM ActiveLevelScore a2 WHERE a2.repository.id = r.id
+        )
+        """,
+    )
+    fun findAllLatest(): List<ActiveLevelScore>
+
     fun findAllByRepositoryId(repositoryId: Long): List<ActiveLevelScore>
 }

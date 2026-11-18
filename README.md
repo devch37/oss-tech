@@ -22,7 +22,7 @@ UI는 **영어(기본)** 와 **한국어**를 지원합니다.
 |--------|------|
 | Backend | Kotlin 1.9 · Spring Boot 3.3 · Spring WebFlux · JPA |
 | Database | PostgreSQL 16 · Flyway 10 |
-| AI | OpenAI Responses API (기본 `gpt-5-mini`) · `LLM_PROVIDER=claude`로 Claude 전환 가능 |
+| 리포트 | 기본은 LLM 없이 템플릿 생성 · 선택: OpenAI Responses API(`gpt-5-mini`) / Claude (`LLM_PROVIDER`) |
 | Frontend | Next.js 14 (App Router) · TypeScript · Tailwind CSS · Recharts · next-intl |
 | Infra | Docker · Docker Compose |
 
@@ -34,7 +34,7 @@ oss-tech/
 │   ├── src/main/kotlin/
 │   │   ├── api/               # REST 컨트롤러
 │   │   ├── claude/            # 월간 리포트 생성 서비스 (en/ko) + Claude 클라이언트
-│   │   ├── llm/               # LLM 연동 (OpenAI 기본 / Claude 선택)
+│   │   ├── llm/               # 리포트 작성기 (템플릿 기본 / OpenAI·Claude 선택)
 │   │   ├── crawler/           # 크롤러, 의존성 파서, Active Level 계산
 │   │   ├── github/            # GitHub API 클라이언트
 │   │   ├── config/            # WebClient, CORS 설정
@@ -60,14 +60,15 @@ oss-tech/
 
 | Method | Path | 설명 |
 |--------|------|------|
+| GET | `/api/v1/overview` | 전 분야 대시보드 요약 (합계, 분야별 대표 프로젝트·라이브러리, 활동 등급·언어 분포, 상위/숨은 프로젝트) |
 | GET | `/api/v1/domains` | 도메인별 레포지토리 수 |
 | GET | `/api/v1/repositories` | 레포지토리 목록 (score/stars 정렬) |
 | GET | `/api/v1/libraries` | 라이브러리 순위 (도메인·월 기준) |
 | GET | `/api/v1/libraries/trend?name=&domain=` | 라이브러리 6개월 트렌드 (**`@scope/name` 처럼 `/`가 든 이름은 이 방식**) |
 | GET | `/api/v1/libraries/{name}/trend` | 위와 동일 (이름에 `/`가 없을 때만 사용 가능) |
-| GET | `/api/v1/reports?domain=&lang=` | AI 리포트 목록 (`lang`: `en`(기본) \| `ko`) |
-| GET | `/api/v1/reports/{id}` | AI 리포트 상세 (Markdown) |
-| POST | `/api/v1/reports/generate?domain=&yearMonth=&lang=` | AI 리포트 수동 생성 |
+| GET | `/api/v1/reports?domain=&lang=` | 월간 리포트 목록 (`lang`: `en`(기본) \| `ko`) |
+| GET | `/api/v1/reports/{id}` | 월간 리포트 상세 (Markdown) |
+| POST | `/api/v1/reports/generate?domain=&yearMonth=&lang=` | 월간 리포트 수동 생성 |
 | POST | `/api/v1/crawl/trigger` | GitHub 크롤링 수동 트리거 |
 
 Swagger UI: `http://localhost:8089/swagger-ui.html`
@@ -93,8 +94,9 @@ cp .env.example .env
 
 ```env
 GITHUB_TOKEN=ghp_your_token_here
-OPENAI_API_KEY=sk-your_key_here
 ```
+
+월간 리포트는 LLM 키 없이도 만들어집니다(기본 `LLM_PROVIDER=none`). GPT 해설이 필요해지면 아래 "월간 리포트와 AI(선택)"를 보세요.
 
 ### 실제 GitHub 데이터 수집하기
 
@@ -206,9 +208,21 @@ docker exec -i oss-tech-postgres psql -U osstech -d osstech < scripts/dev/clear-
 
 > API 응답은 프론트에서 5~10분간 캐시됩니다(`revalidate`). 데이터를 바꾼 직후에 화면이 그대로면 잠시 뒤 새로고침하세요.
 
-## AI 리포트 (OpenAI)
+## 월간 리포트와 AI(선택)
 
-월간 리포트는 OpenAI **Responses API**(`POST /v1/responses`)로 작성합니다. 기본 모델은 `gpt-5-mini`입니다.
+`LLM_PROVIDER` 로 리포트 작성 방식을 고릅니다.
+
+| 값 | 동작 | 필요한 것 |
+|----|------|-----------|
+| `none` (기본) | 집계 데이터에서 읽히는 사실(최다 사용, 급상승, 하락, 새로 늘어난 라이브러리)을 5개 섹션 마크다운으로 정리. 해석·예측은 쓰지 않음 | 없음 |
+| `openai` | GPT가 기술적 맥락과 해설을 곁들여 작성 | `OPENAI_API_KEY` + 충전된 API 크레딧 |
+| `claude` | Claude가 작성 | `CLAUDE_API_KEY` |
+
+리포트는 매월 1일 전월 데이터로 자동 생성되고, 지금 만들려면 `POST /api/v1/reports/generate?domain=frontend&yearMonth=2026-11&lang=en` 을 호출합니다. 이미 만든 리포트는 다시 만들지 않으므로, 방식을 바꾼 뒤 새로 쓰려면 해당 월 리포트를 DB에서 지운 뒤 다시 생성하세요.
+
+### OpenAI로 쓰고 싶을 때
+
+`.env`에 `LLM_PROVIDER=openai` 와 `OPENAI_API_KEY` 를 넣고 백엔드를 다시 만듭니다 (`docker compose up -d --force-recreate backend`). 모델은 OpenAI **Responses API**(`POST /v1/responses`), 기본 `gpt-5-mini`입니다.
 
 **1. API 키 발급과 결제 — ChatGPT 구독과는 별개입니다.**
 ChatGPT Plus/Go 구독은 API 사용량을 포함하지 않습니다(OpenAI 문서상 API 크레딧 혜택은 Pro·Business 구독 한정). API는 <https://platform.openai.com> 에서 키를 발급하고 **크레딧을 충전**해야 쓸 수 있으며, 크레딧이 없으면 `429 credit_balance_exhausted` 로 실패합니다.
@@ -224,9 +238,9 @@ ChatGPT Plus/Go 구독은 API 사용량을 포함하지 않습니다(OpenAI 문�
 
 **비용 감각.** 리포트는 월 12번(도메인 6개 × 영어·한국어) 생성되고 이미 만든 리포트는 다시 만들지 않습니다. 한 번에 입력 약 1.5K·출력 약 2.5K 토큰으로 어림하면 `gpt-5-mini` 기준 월 몇십 센트 이하입니다. 추론(reasoning) 토큰도 출력으로 과금되니 더 줄이려면 `OPENAI_REASONING_EFFORT=low`(모델마다 지원 값이 다름)나 더 작은 모델(`OPENAI_MODEL`)을 쓰세요. 최신 단가는 <https://developers.openai.com/api/docs/pricing> 에서 확인하세요.
 
-**제공자 전환.** `.env`의 `LLM_PROVIDER=claude`(+ `CLAUDE_API_KEY`)로 되돌릴 수 있습니다.
+**제공자 전환.** `.env`의 `LLM_PROVIDER=claude`(+ `CLAUDE_API_KEY`) 또는 `none` 으로 바꿀 수 있습니다.
 
-**키가 없을 때.** 리포트 생성 API는 `503 LLM_UNAVAILABLE` 과 함께 원인·해결 방법을 알려줍니다. 크롤링과 화면 조회는 AI 키와 무관하게 동작합니다.
+**키가 없을 때.** `LLM_PROVIDER=openai` 인데 키가 없으면 리포트 생성 API가 `503 LLM_UNAVAILABLE` 과 함께 원인·해결 방법을 알려줍니다. 크롤링과 화면 조회는 AI 키와 무관하게 동작합니다.
 
 ## 다국어 (English / 한국어)
 
@@ -234,13 +248,33 @@ ChatGPT Plus/Go 구독은 API 사용량을 포함하지 않습니다(OpenAI 문�
 |------|-------------|--------|
 | URL | `/libraries` | `/ko/libraries` |
 | 번역 파일 | `frontend/messages/en.json` | `frontend/messages/ko.json` |
-| AI 리포트 | `lang=en` | `lang=ko` |
+| 월간 리포트 | `lang=en` | `lang=ko` |
 
 - **`/`는 항상 영어입니다.** 브라우저 언어나 쿠키로 자동 이동하지 않습니다(`localeDetection: false`). 한국어는 `/ko`로 직접 들어가거나 헤더의 언어 버튼으로 전환합니다.
   브라우저 언어에 따라 자동으로 `/ko`로 보내고 싶다면 `frontend/src/i18n/routing.ts`에서 `localeDetection: false`를 지우세요.
 - 새 문구는 **두 파일에 같은 키**로 추가합니다. 날짜·숫자 형식은 로케일에 맞춰 자동으로 바뀝니다.
 - 검색 노출용 `hreflang`/canonical 은 페이지마다 자동 생성됩니다. 배포 시 `.env`의 `SITE_URL`(예: `https://example.com`)을 실제 주소로 설정하세요 (런타임 변수라 이미지 재빌드가 필요 없습니다).
-- 월간 리포트는 영어·한국어를 각각 생성합니다 (`OPENAI_API_KEY` 필요, 아래 "AI 리포트" 참고). 요청한 언어의 리포트가 없으면 다른 언어로 보여주고 안내 문구를 표시합니다.
+- 월간 리포트는 영어·한국어를 각각 생성합니다 (기본은 템플릿이라 키 불필요, GPT 사용은 아래 "월간 리포트와 AI" 참고). 요청한 언어의 리포트가 없으면 다른 언어로 보여주고 안내 문구를 표시합니다.
+
+## 크롤러가 읽는 것
+
+레포 루트의 파일 목록을 **한 번** 조회해서, 실제로 있는 의존성 파일만 읽습니다 (없는 파일을 하나씩 찔러보지 않아 레포당 호출이 적습니다).
+
+| 생태계 | 파일 |
+|--------|------|
+| JavaScript / TypeScript | `package.json` |
+| Python | `requirements.txt`, `pyproject.toml` (PEP 621, Poetry) |
+| Go | `go.mod` (직접 의존성만, `// indirect` 제외) |
+| Rust | `Cargo.toml` |
+| Java / Kotlin | `pom.xml`, `build.gradle`, `build.gradle.kts` |
+| Dart / Flutter | `pubspec.yaml` |
+| PHP | `composer.json` |
+| Ruby | `Gemfile` |
+
+- 루트 파일만 읽습니다. 모노레포 하위 폴더의 의존성은 포함되지 않습니다.
+- 파서를 더하려면 `crawler/parser/`에 `DependencyParser` 구현을 추가하고 `FileType`과 `CrawlerService`의 후보 목록에 등록하세요.
+- **목록·문서형 레포는 제외합니다.** `awesome-*`, 인터뷰/로드맵/치트시트/인턴십 목록처럼 소프트웨어가 아닌 레포는 스타와 커밋이 많아 "가장 활발한 프로젝트"를 왜곡하기 때문에 이름 규칙(`CrawlDomains.isCuratedList`)으로 건너뛰고, 그만큼 더 받아 와서 분야당 목표 개수를 채웁니다. 이름 규칙이라 완벽하지 않습니다.
+- 같은 레포가 여러 토픽에 걸리면(예: frontend + mobile) 분야마다 따로 저장하고, 전체 대시보드의 합계·순위에서는 한 번만 셉니다.
 
 ## Active Level Score
 

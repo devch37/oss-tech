@@ -152,3 +152,13 @@ export function extractFirstParagraph(markdown: string, maxLength = 220): string
   }
   return '';
 }
+
+/** ISO 8601 시각이 오늘(UTC)로부터 며칠 전인지 (오늘이면 0). 읽을 수 없으면 null. */
+export function daysSince(iso: string | null | undefined, now: Date = new Date()): number | null {
+  if (!iso) return null;
+  const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) return null;
+  const day = 24 * 60 * 60 * 1000;
+  const startOf = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  return Math.max(0, Math.round((startOf(now) - startOf(then)) / day));
+}

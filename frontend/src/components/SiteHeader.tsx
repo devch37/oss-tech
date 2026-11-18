@@ -14,10 +14,14 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 const NAV = [
   { href: '/', key: 'home' },
-  { href: '/libraries', key: 'libraries' },
+  { href: '/languages', key: 'languages' },
+  { href: '/developers', key: 'developers' },
   { href: '/repositories', key: 'repositories' },
+  { href: '/libraries', key: 'libraries' },
   { href: '/reports', key: 'reports' },
 ] as const;
+
+const DOMAIN_PAGES: string[] = ['/repositories', '/libraries', '/reports'];
 
 function isActive(pathname: string, href: string): boolean {
   return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
@@ -26,7 +30,7 @@ function isActive(pathname: string, href: string): boolean {
 function Wordmark() {
   const t = useTranslations('brand');
   return (
-    <Link href="/" className="flex items-center gap-2.5 text-foreground">
+    <Link href="/" className="flex shrink-0 items-center gap-2.5 whitespace-nowrap text-foreground">
       <Logo />
       <span className="font-display text-lg font-semibold tracking-tight">{t('name')}</span>
     </Link>
@@ -39,12 +43,12 @@ export function SiteHeader() {
   const domain = useSearchParams().get('domain');
   const [open, setOpen] = useState(false);
 
-  // 도메인 선택은 페이지를 옮겨도 유지한다.
-  const hrefFor = (href: string) => (domain ? { pathname: href, query: { domain } } : href);
+  // 분야 선택은 분야별 페이지(프로젝트·라이브러리·리포트)를 오갈 때만 유지한다.
+  const hrefFor = (href: string) => (domain && DOMAIN_PAGES.includes(href) ? { pathname: href, query: { domain } } : href);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="container flex h-14 items-center gap-6">
+      <div className="container flex h-14 items-center gap-3 sm:gap-6">
         <Wordmark />
 
         <nav aria-label={t('main')} className="hidden md:block">

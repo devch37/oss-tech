@@ -77,6 +77,8 @@
   }
   html {
     -webkit-text-size-adjust: 100%;
+    /* 기본 글자를 16px → 17px 로 키워 처음 보는 사람도 편하게 읽게 한다 (rem 기반이라 전체가 함께 커진다) */
+    font-size: 106.25%;
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;

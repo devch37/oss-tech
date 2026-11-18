@@ -1,6 +1,7 @@
 package com.oss.techradar.github
 
 import com.oss.techradar.github.dto.GitHubContent
+import com.oss.techradar.github.dto.GitHubContentEntry
 import com.oss.techradar.github.dto.GitHubIssue
 import com.oss.techradar.github.dto.GitHubPullRequest
 import com.oss.techradar.github.dto.GitHubSearchItem
@@ -110,6 +111,24 @@ class GitHubApiClient(
                 ?: emptyList()
 
             issues.count { it.pullRequest == null }
+        }
+
+    /**
+     * 레포 루트의 파일 이름 목록 (호출 1회). 의존성 파일이 있는지 미리 알아 두면
+     * 없는 파일을 하나씩 찔러보는 호출(404)을 아낄 수 있다. 레포가 없으면(404) 빈 집합.
+     */
+    suspend fun listRootFileNames(owner: String, repo: String): Set<String> =
+        retryOnRateLimit {
+            webClient.get()
+                .uri("/repos/$owner/$repo/contents/")
+                .retrieve()
+                .failOnError(notFoundIsEmpty = true)
+                .bodyToMono(object : ParameterizedTypeReference<List<GitHubContentEntry>>() {})
+                .awaitSingleOrNull()
+                ?.filter { it.type == null || it.type == "file" }
+                ?.map { it.name }
+                ?.toSet()
+                ?: emptySet()
         }
 
     /** 파일 내용 조회. 없으면(404) null. */

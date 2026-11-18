@@ -26,7 +26,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
     <div
       role="group"
       aria-label={t('label')}
-      className={cn('inline-flex rounded-md border border-border bg-card p-0.5 text-xs', className)}
+      className={cn('inline-flex shrink-0 rounded-md border border-border bg-card p-0.5 text-sm', className)}
     >
       {routing.locales.map((locale) => {
         const active = locale === current;
@@ -39,7 +39,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             aria-label={t(locale)}
             onClick={() => switchTo(locale)}
             className={cn(
-              'rounded-[5px] px-2.5 py-1 font-medium transition-colors',
+              'whitespace-nowrap rounded-[5px] px-2.5 py-1.5 font-medium transition-colors',
               active
                 ? 'bg-foreground text-background'
                 : 'text-muted-foreground hover:text-foreground',

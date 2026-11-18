@@ -1,21 +1,23 @@
 {
   "metadata": {
-    "title": "OSS Radar — what's rising in open source",
-    "description": "See which GitHub open-source projects and libraries are gaining momentum in frontend, backend, DevOps, mobile, data and security. Updated daily."
+    "title": "OSS Radar — what's trending on GitHub",
+    "description": "See which GitHub projects, programming languages and developers are trending right now. Simple rankings for everyone, updated daily."
   },
   "brand": {
     "name": "OSS Radar",
-    "tagline": "What's rising in open source"
+    "tagline": "What's trending on GitHub"
   },
   "nav": {
     "main": "Main navigation",
-    "home": "Radar",
+    "home": "Trending",
     "libraries": "Libraries",
-    "repositories": "Repositories",
+    "repositories": "Search",
     "reports": "Reports",
     "openMenu": "Open menu",
     "skipToContent": "Skip to content",
-    "close": "Close menu"
+    "close": "Close menu",
+    "languages": "Languages",
+    "developers": "Developers"
   },
   "theme": {
     "toggle": "Switch between light and dark theme"
@@ -35,7 +37,7 @@
     "security": "Security"
   },
   "footer": {
-    "text": "Data comes from the GitHub API and is refreshed daily. Monthly reports summarize the library data."
+    "text": "Data comes from GitHub's public search and is refreshed every day. This site is not run by GitHub."
   },
   "common": {
     "retry": "Try again",
@@ -189,34 +191,74 @@
     "series": "Repositories"
   },
   "repositories": {
-    "title": "Repositories",
-    "description": "The most active open-source {domain} repositories on GitHub, ranked by activity score or stars.",
-    "sort": {
-      "label": "Sort by",
-      "score": "Activity score",
-      "stars": "Stars"
+    "title": "Search projects",
+    "description": "Find one of {count} popular open-source projects. Type a word, or narrow the list with the filters.",
+    "criteria": "The list has the 30 most-starred projects of each of the six fields, checked every day. Lists, courses and tutorials are left out.",
+    "search": {
+      "label": "Search",
+      "placeholder": "Try: chat, game, database, Rust",
+      "help": "Looks at project names, descriptions and languages. Use more than one word to narrow it down."
     },
-    "level": {
-      "label": "Activity level",
-      "all": "All"
+    "filters": {
+      "label": "Filters",
+      "field": {
+        "label": "Field",
+        "all": "All fields"
+      },
+      "language": {
+        "label": "Language",
+        "all": "All languages",
+        "option": "{language} ({count})",
+        "help": "The main language the project is written in."
+      },
+      "activity": {
+        "label": "Activity",
+        "all": "Any",
+        "help": "Activity shows how much work happened in the last 30 days: updates, merged changes and closed issues, adjusted for how big the project is."
+      },
+      "sort": {
+        "label": "Sort by",
+        "stars": "Most stars",
+        "activity": "Most active",
+        "name": "Name, A to Z"
+      }
     },
-    "count": "{count, plural, one {# repository} other {# repositories}}",
-    "matchingLevel": "at level {level}",
-    "columns": {
-      "rank": "Rank",
-      "repository": "Repository",
-      "stars": "Stars",
-      "score": "Score",
-      "commits": "Commits · 30d",
-      "prs": "PRs · 30d",
-      "level": "Level"
+    "summary": {
+      "showing": "{shown} of {total} projects match",
+      "applied": "Your filters",
+      "none": "No filters yet, so you are seeing everything.",
+      "clear": "Clear all filters",
+      "remove": "Remove this filter: {label}",
+      "field": "Field: {value}",
+      "language": "Language: {value}",
+      "activity": "Activity: {value}",
+      "search": "Search: “{value}”",
+      "sortedBy": "Sorted by: {value}",
+      "all": "All {total} projects"
     },
+    "list": {
+      "more": "Show {count} more",
+      "stars": "{count} stars",
+      "noDescription": "No description yet.",
+      "noMatch": {
+        "title": "No project matches these filters",
+        "description": "Try a different word, or remove one of the filters below.",
+        "clear": "Clear all filters"
+      }
+    },
+    "how": {
+      "summary": "How was this list made?",
+      "source": "Where the projects come from: for each of the six fields we take the 30 most-starred projects on GitHub that carry that field's topic (frontend, backend, devops, mobile, data-science, security).",
+      "excluded": "What we leave out: collections of links, courses and tutorials, such as awesome lists, roadmaps and interview guides, because they are not software.",
+      "activity": "Activity: we count the updates, merged changes and closed issues from the last 30 days and adjust for how popular the project is.",
+      "fields": "A project can belong to more than one field. It is shown once, with all of its fields.",
+      "fresh": "Refreshed once a day from GitHub's public data."
+    },
+    "error": "Couldn't load the projects. Make sure the backend is running, then reload.",
     "empty": {
-      "title": "No repositories for {domain} yet",
-      "description": "Start a crawl for this domain to collect them."
-    },
-    "noMatch": "No repository is at level {level}.",
-    "error": "Couldn't load repositories. Make sure the backend is running, then reload."
+      "title": "No projects yet",
+      "description": "Projects appear after the first crawl. Start one and reload the page."
+    }
   },
   "reports": {
     "title": "Reports",
@@ -258,37 +300,7 @@
     "goHome": "Back to the radar"
   },
   "overview": {
-    "tab": "Overview",
-    "title": "What's hot on GitHub right now",
-    "intro": "The most active open-source projects in six fields, and the libraries they build with. Refreshed daily from the GitHub API.",
-    "scope": "Based on {repos, plural, one {# project} other {# projects}} and {libs, plural, one {# library} other {# libraries}}. Library data for {month}.",
-    "stats": {
-      "projects": "Projects tracked",
-      "stars": "Total stars",
-      "commits": "Commits in the last 30 days",
-      "libraries": "Libraries analyzed"
-    },
-    "hot": {
-      "title": "Most active projects right now",
-      "description": "Across all six fields. A longer bar means more commits, merged pull requests and closed issues in the last 30 days, adjusted for project size."
-    },
-    "fields": {
-      "title": "Six fields at a glance",
-      "description": "Pick a field to see its ranking, libraries and report. The bar shows how active its projects are.",
-      "projects": "{count, plural, one {# project} other {# projects}}",
-      "hottest": "Most active project",
-      "topLibrary": "Most-used library",
-      "usedBy": "in {count, plural, one {# project} other {# projects}}",
-      "stars": "{count} stars in total",
-      "empty": "No data yet",
-      "open": "Open {domain}"
-    },
-    "gems": {
-      "title": "Busier than their stars suggest",
-      "description": "Projects with fewer stars than most in their field, yet among the most active. Worth a look.",
-      "empty": "No standouts yet. This appears once a field has a few projects tracked.",
-      "stars": "{count} stars"
-    },
+    "tab": "Trending",
     "levels": {
       "title": "How active are these projects?",
       "description": "Every tracked project, grouped by its activity over the last 30 days. Darker amber means more active."
@@ -297,6 +309,112 @@
       "title": "What are they written in?",
       "description": "The main language of each project.",
       "projects": "{count, plural, one {# project} other {# projects}}"
+    }
+  },
+  "trends": {
+    "hero": {
+      "title": "What's hot on GitHub right now",
+      "subtitle": "New projects, popular programming languages, and the people who build them. All in one place, refreshed every day.",
+      "updated": "Last updated {date}"
+    },
+    "explainer": {
+      "summary": "New to GitHub? Tap here to see what these words mean",
+      "github": {
+        "term": "GitHub",
+        "text": "A website where people share the code (the instructions) that makes apps and games work."
+      },
+      "project": {
+        "term": "Project",
+        "text": "One project on GitHub, like a folder that holds everything about one app or tool. Programmers also call it a repository, or repo."
+      },
+      "star": {
+        "term": "Star",
+        "text": "A star is a like. The more stars, the more people find it useful."
+      },
+      "developer": {
+        "term": "Developer",
+        "text": "A person or a team who writes code."
+      }
+    },
+    "hot": {
+      "title": "Hottest new projects",
+      "description": "Projects started recently that already have the most stars.",
+      "viewBy": "Started in",
+      "week": "The last 7 days",
+      "month": "The last 30 days",
+      "viewAll": "See the full list",
+      "empty": "No new projects to show yet.",
+      "rule": "Projects started in the period you pick, in any language, with the most stars first. Lists, courses and tutorials are left out."
+    },
+    "loved": {
+      "title": "Favorites that are still going strong",
+      "description": "Projects with lots of stars that were also updated in the last month.",
+      "empty": "Nothing to show yet.",
+      "rule": "The most-starred projects among the top 30 of each field that were also updated in the last 30 days.",
+      "viewAll": "Search all projects"
+    },
+    "languages": {
+      "title": "Which programming languages are popular?",
+      "description": "A programming language is what developers write code in. The longer the bar, the more new popular projects use it this month.",
+      "note": "We count projects started in the last 30 days that have at least 50 stars.",
+      "projects": "{count, plural, one {# project} other {# projects}}",
+      "topProject": "Top project",
+      "viewAll": "See all languages",
+      "empty": "No language data yet.",
+      "share": "{percent} of the total",
+      "rule": "For each language we count the projects started in the last 30 days that have at least 50 stars."
+    },
+    "developers": {
+      "title": "People and teams to watch",
+      "description": "Who is building the hot projects, and who has the most followers.",
+      "viewBy": "Show",
+      "rising": "Behind the hot projects",
+      "followed": "Most followed",
+      "person": "Person",
+      "team": "Team or company",
+      "hotProjects": "{count, plural, one {# hot project} other {# hot projects}}",
+      "starsTotal": "{count} stars in total",
+      "followers": "{count} followers",
+      "publicProjects": "{count, plural, one {# public project} other {# public projects}}",
+      "followersHelp": "Followers are people who keep up with this developer's work.",
+      "viewAll": "See everyone",
+      "empty": "No developers to show yet.",
+      "rule": "Behind the hot projects: the owners of the hottest new projects. Most followed: people with over 5,000 followers who share public projects."
+    },
+    "fields": {
+      "title": "Browse by field",
+      "description": "Pick a field to see its most popular projects.",
+      "projects": "{count, plural, one {# project} other {# projects}}",
+      "open": "Open {domain}"
+    },
+    "repo": {
+      "stars": "{count} stars",
+      "startedToday": "Started today",
+      "startedDaysAgo": "{days, plural, one {Started 1 day ago} other {Started # days ago}}",
+      "noDescription": "No description yet.",
+      "rank": "Number {rank}",
+      "language": "Language"
+    },
+    "how": {
+      "summary": "How do we decide these rankings?",
+      "intro": "GitHub has no official trending list, so we build ours from GitHub's public search. Everything is updated once a day.",
+      "newProjects": "Hottest new projects: projects started in the last 7 or 30 days, with the most stars first.",
+      "loved": "Favorites: projects with the most stars that were also updated in the last 30 days.",
+      "languages": "Languages: how many projects started in the last 30 days earned at least 50 stars, for each language. The percentage is each language's share among the languages shown.",
+      "developers": "People and teams: the owners of the hot new projects, and the developers with the most followers."
+    },
+    "pending": {
+      "title": "Getting the first results ready",
+      "description": "The numbers are being collected right now. This takes about 3 minutes. Please reload this page soon.",
+      "hint": "If it stays empty, make sure the backend is running and has a GitHub token."
+    },
+    "pages": {
+      "trendingTitle": "Hottest new projects",
+      "languagesTitle": "Programming languages",
+      "developersTitle": "People and teams"
+    },
+    "rule": {
+      "label": "How this list is chosen"
     }
   }
 }

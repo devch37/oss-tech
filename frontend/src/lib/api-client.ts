@@ -9,6 +9,7 @@ import type {
   PagedResult,
   ReportMeta,
   Repository,
+  Trends,
   ReportLanguage,
 } from '@/types/api';
 
@@ -71,6 +72,13 @@ function buildQuery(params: Record<string, string | number | undefined>): string
 }
 
 // ─── Endpoint Functions ───────────────────────────────────────────────────────
+
+/** GET /api/v1/trends — 지금 GitHub 에서 뜨는 것 (프로젝트·언어·개발자) */
+export async function getTrends(): Promise<Trends> {
+  return apiFetch<Trends>('/api/v1/trends', {
+    next: { revalidate: 300 },
+  } as RequestInit);
+}
 
 /** GET /api/v1/overview — 전 도메인 대시보드 요약 */
 export async function getOverview(): Promise<Overview> {

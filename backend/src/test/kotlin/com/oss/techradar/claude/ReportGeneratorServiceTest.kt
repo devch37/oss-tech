@@ -180,4 +180,27 @@ class ReportGeneratorServiceTest {
         assertEquals("ko", service.generateReport(testDomain, testMonth, ReportLanguage.KO).language)
         coVerify(exactly = 1) { reportLlm.generate(any(), any()) }
     }
+
+    @Test
+    fun `generateReport - LLM 제공자가 없으면 템플릿으로 작성해 저장`() = runTest {
+        val noLlmService = ReportGeneratorService(
+            reportLlm = null,
+            libraryUsageRepository = libraryUsageRepository,
+            monthlyReportRepository = monthlyReportRepository,
+        )
+        val savedSlot = slot<MonthlyReport>()
+        every { monthlyReportRepository.findByDomainAndReportMonthAndLanguage(testDomain, testMonth, "en") } returns null
+        every { libraryUsageRepository.findRankByDomainAndMonth(any(), any(), any()) } returns listOf(
+            makeLibraryUsage("pydantic", 1240, 5.0, 1180),
+            makeLibraryUsage("httpx", 980, 25.0, 784),
+        )
+        every { monthlyReportRepository.save(capture(savedSlot)) } returnsArgument 0
+
+        noLlmService.generateReport(testDomain, testMonth)
+
+        assertTrue(savedSlot.captured.content.contains("## One-line summary"))
+        assertTrue(savedSlot.captured.content.contains("httpx"))
+        assertEquals("en", savedSlot.captured.language)
+        coVerify(exactly = 0) { reportLlm.generate(any(), any()) }
+    }
 }
