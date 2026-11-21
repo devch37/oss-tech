@@ -76,7 +76,7 @@ export default async function RepositoriesPage({ params, searchParams }: Props) 
         <EmptyState title={t('empty.title')} description={t('empty.description')} />
       ) : (
         <>
-          <p className="max-w-3xl rounded-lg bg-muted px-4 py-3 text-base leading-relaxed text-muted-foreground">{t('criteria')}</p>
+          <p className="max-w-3xl rounded-lg border border-border/70 bg-muted/50 px-3 py-2.5 text-[13px] leading-relaxed text-muted-foreground">{t('criteria')}</p>
           <ProjectExplorer repositories={items} initial={parseFilters(searchParams)} />
           <HowListWasMade />
         </>

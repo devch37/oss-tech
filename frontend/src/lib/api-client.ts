@@ -4,13 +4,10 @@ import type {
   Domain,
   Library,
   LibraryTrend,
-  MonthlyReport,
   Overview,
   PagedResult,
-  ReportMeta,
   Repository,
   Trends,
-  ReportLanguage,
 } from '@/types/api';
 
 // ─── URL Strategy ─────────────────────────────────────────────────────────────
@@ -139,34 +136,6 @@ export async function getRepositories(params: {
   return apiFetch<PagedResult<Repository>>(`/api/v1/repositories${query}`, {
     next: { revalidate: 300 },
   } as RequestInit);
-}
-
-/** GET /api/v1/reports?domain=&lang= */
-export async function getReports(domain: string, lang: ReportLanguage = 'en'): Promise<ReportMeta[]> {
-  const query = buildQuery({ domain, lang });
-  return apiFetch<ReportMeta[]>(`/api/v1/reports${query}`, {
-    next: { revalidate: 300 },
-  } as RequestInit);
-}
-
-/** GET /api/v1/reports/{id} */
-export async function getReport(id: number): Promise<MonthlyReport> {
-  return apiFetch<MonthlyReport>(`/api/v1/reports/${id}`, {
-    next: { revalidate: 3600 },
-  } as RequestInit);
-}
-
-/** POST /api/v1/reports/generate?domain=&yearMonth=&lang= */
-export async function generateReport(
-  domain: string,
-  yearMonth: string,
-  lang: ReportLanguage = 'en',
-): Promise<MonthlyReport> {
-  const query = buildQuery({ domain, yearMonth, lang });
-  return apiFetch<MonthlyReport>(`/api/v1/reports/generate${query}`, {
-    method: 'POST',
-    cache: 'no-store',
-  });
 }
 
 /** POST /api/v1/crawl/trigger?domain= */

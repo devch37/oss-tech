@@ -1,15 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn, formatCompact, getScoreGrade } from '@/lib/utils';
 import type { Repository } from '@/types/api';
+import { Paginator } from '@/components/Paginator';
 import { SegmentedControl } from '@/components/SegmentedControl';
 
 type View = 'activity' | 'stars';
 
-const TOP_N = 10;
+const PAGE = 10;
 
 /**
  * "어떤 프로젝트가 가장 활발한가" — 한 가지 질문에 막대 하나로 답한다.
@@ -30,23 +31,33 @@ export function ProjectBars({ repositories, showField = false, allowSort = true 
   const td = useTranslations('domains');
   const locale = useLocale();
   const [view, setView] = useState<View>('activity');
+  const [page, setPage] = useState(1);
+  const topRef = useRef<HTMLDivElement>(null);
 
   const rows = useMemo(() => {
     const valueOf = (r: Repository) => (view === 'activity' ? (r.score ?? 0) : r.stars);
-    const sorted = [...repositories].filter((r) => valueOf(r) > 0).sort((a, b) => valueOf(b) - valueOf(a)).slice(0, TOP_N);
+    // 활동량이 0 인 프로젝트도 목록에는 넣는다 ("최근 30일 조용한 프로젝트"도 정보다). 막대는 최소 길이로 보인다.
+    const sorted = [...repositories].filter((r) => (view === 'activity' ? r.score !== null : r.stars > 0)).sort((a, b) => valueOf(b) - valueOf(a));
     // 1위가 나머지보다 수십 배 큰 경우가 흔해서(봇 커밋, 대형 프로젝트) 선형 막대로는 2위 이하가 거의 안 보인다.
     // 제곱근 척도는 순서를 그대로 두면서 차이를 읽을 수 있게 한다. 정확한 값은 오른쪽 숫자가 말해 준다.
     const max = Math.sqrt(Math.max(...sorted.map(valueOf), 1));
     return sorted.map((repo) => ({ repo, pct: Math.max((Math.sqrt(valueOf(repo)) / max) * 100, 2) }));
   }, [repositories, view]);
 
+  const safePage = Math.min(page, Math.max(1, Math.ceil(rows.length / PAGE)));
+  const offset = (safePage - 1) * PAGE;
+  const pageRows = rows.slice(offset, offset + PAGE);
+
   return (
-    <div className="space-y-4">
+    <div ref={topRef} className="scroll-mt-20 space-y-4">
       {allowSort && (
         <SegmentedControl<View>
           label={t('viewBy')}
           value={view}
-          onChange={setView}
+          onChange={(v) => {
+            setView(v);
+            setPage(1);
+          }}
           options={[
             { value: 'activity', label: t('byActivity') },
             { value: 'stars', label: t('byStars') },
@@ -56,7 +67,8 @@ export function ProjectBars({ repositories, showField = false, allowSort = true 
 
       {/* key 를 view 로 바꿔 전환할 때 막대가 다시 자라게 한다 (사용자 동작에 대한 반응) */}
       <ol key={view} className="divide-y divide-border border-y border-border">
-        {rows.map(({ repo, pct }, index) => {
+        {pageRows.map(({ repo, pct }, pageIndex) => {
+          const index = offset + pageIndex;
           const grade = getScoreGrade(repo.score);
           const gradeLabel = grade === '-' ? tg('none') : tg(grade);
           return (
@@ -112,6 +124,16 @@ export function ProjectBars({ repositories, showField = false, allowSort = true 
           );
         })}
       </ol>
+
+      <Paginator
+        page={safePage}
+        pageSize={PAGE}
+        total={rows.length}
+        onChange={(p) => {
+          setPage(p);
+          topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }}
+      />
     </div>
   );
 }

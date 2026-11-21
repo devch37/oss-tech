@@ -8,66 +8,72 @@
    Sea / Brick : 데이터 보조색 (상승·안정 / 하락)
    ─────────────────────────────────────────────────────────────────────────── */
 @layer base {
+  /* 라이트: 깨끗한 종이색 + GitHub 라이트에 가까운 선·글자 */
   :root {
-    --background: 216 38% 97%;
-    --foreground: 213 61% 11%;
+    --background: 210 33% 98%;
+    --foreground: 215 28% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 213 61% 11%;
+    --card-foreground: 215 28% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 213 61% 11%;
+    --popover-foreground: 215 28% 12%;
 
-    --border: 215 27% 91%;
-    --input: 215 27% 84%;
-    --ring: 196 64% 33%;
+    --border: 214 20% 87%;
+    --input: 214 18% 80%;
+    --ring: 212 92% 45%;
 
-    --primary: 213 61% 11%;
-    --primary-foreground: 216 38% 97%;
-    --secondary: 210 31% 95%;
-    --secondary-foreground: 213 61% 11%;
-    --muted: 210 31% 95%;
-    --muted-foreground: 215 20% 40%;
-    --accent: 210 31% 93%;
-    --accent-foreground: 213 61% 11%;
-    --destructive: 8 62% 47%;
+    --primary: 215 28% 12%;
+    --primary-foreground: 210 33% 98%;
+    --secondary: 210 24% 95%;
+    --secondary-foreground: 215 28% 12%;
+    --muted: 210 24% 94%;
+    --muted-foreground: 215 14% 38%;
+    --accent: 210 24% 92%;
+    --accent-foreground: 215 28% 12%;
+    --destructive: 356 72% 47%;
     --destructive-foreground: 0 0% 100%;
 
-    --signal: 37 91% 55%;
-    --signal-ink: 35 100% 30%;
-    --sea: 196 64% 33%;
-    --brick: 8 62% 47%;
+    --signal: 41 90% 50%;       /* 스타 노랑 */
+    --signal-ink: 36 100% 31%;
+    --sea: 212 92% 42%;         /* 링크 파랑 */
+    --brick: 356 72% 47%;
+    --trend: 137 66% 36%;       /* 상승·뜨는 중 초록 */
+    --trend-ink: 137 70% 26%;
 
     --radius: 0.5rem;
   }
 
+  /* 다크(기본): GitHub 다크 팔레트 — 개발자가 매일 보는 색이라 눈이 편하다 */
   .dark {
-    --background: 213 55% 8%;
-    --foreground: 214 30% 94%;
+    --background: 216 28% 7%;     /* #0d1117 */
+    --foreground: 210 29% 93%;    /* #e6edf3 */
 
-    --card: 211 50% 12%;
-    --card-foreground: 214 30% 94%;
-    --popover: 211 50% 12%;
-    --popover-foreground: 214 30% 94%;
+    --card: 215 21% 11%;          /* #161b22 */
+    --card-foreground: 210 29% 93%;
+    --popover: 215 21% 11%;
+    --popover-foreground: 210 29% 93%;
 
-    --border: 212 32% 21%;
-    --input: 212 30% 27%;
-    --ring: 195 60% 58%;
+    --border: 215 14% 21%;        /* #30363d */
+    --input: 215 14% 26%;
+    --ring: 212 100% 67%;
 
-    --primary: 214 30% 94%;
-    --primary-foreground: 213 61% 11%;
-    --secondary: 212 40% 15%;
-    --secondary-foreground: 214 30% 94%;
-    --muted: 212 40% 15%;
-    --muted-foreground: 214 20% 67%;
-    --accent: 212 40% 18%;
-    --accent-foreground: 214 30% 94%;
-    --destructive: 8 70% 55%;
+    --primary: 210 29% 93%;
+    --primary-foreground: 216 28% 7%;
+    --secondary: 215 18% 14%;
+    --secondary-foreground: 210 29% 93%;
+    --muted: 215 18% 14%;
+    --muted-foreground: 215 10% 61%;   /* #8b949e */
+    --accent: 215 18% 16%;
+    --accent-foreground: 210 29% 93%;
+    --destructive: 5 90% 62%;
     --destructive-foreground: 0 0% 100%;
 
-    --signal: 37 91% 55%;
-    --signal-ink: 38 92% 62%;
-    --sea: 195 55% 58%;
-    --brick: 8 78% 63%;
+    --signal: 42 74% 56%;         /* #e3b341 — GitHub 스타 색 */
+    --signal-ink: 42 74% 62%;
+    --sea: 212 100% 67%;          /* #58a6ff */
+    --brick: 5 90% 62%;
+    --trend: 137 53% 51%;         /* #3fb950 */
+    --trend-ink: 137 53% 58%;
   }
 }
 
@@ -77,8 +83,6 @@
   }
   html {
     -webkit-text-size-adjust: 100%;
-    /* 기본 글자를 16px → 17px 로 키워 처음 보는 사람도 편하게 읽게 한다 (rem 기반이라 전체가 함께 커진다) */
-    font-size: 106.25%;
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;
@@ -87,6 +91,7 @@
   h2,
   h3 {
     text-wrap: balance;
+    letter-spacing: -0.02em;
   }
   /* 한국어는 어절 단위로 줄바꿈해 단어가 중간에서 끊기지 않게 한다 */
   html[lang='ko'] body {
@@ -213,5 +218,45 @@
 @media (prefers-reduced-motion: reduce) {
   .bar-fill {
     animation: none;
+  }
+}
+
+/* ─── 개발자 도구 느낌의 장식 ───────────────────────────────────────────────────
+   점 격자(에디터/블루프린트), 터미널 타이핑, 시세판 티커. 모두 움직임 줄이기를 존중한다. */
+.bg-dots {
+  background-image: radial-gradient(hsl(var(--foreground) / 0.11) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@keyframes type {
+  from {
+    width: 0;
+  }
+  to {
+    width: calc(var(--n) * 1ch);
+  }
+}
+
+/* 고정폭 글꼴(1ch = 글자 한 칸)이라 글자 수만큼 한 칸씩 나타난다 */
+.typewriter {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: calc(var(--n) * 1ch);
+  animation: type 1.4s steps(var(--n)) 0.25s both;
+}
+
+.ticker-track:hover,
+.ticker-track:focus-within {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typewriter {
+    animation: none;
+  }
+  .ticker-track {
+    animation: none !important;
   }
 }

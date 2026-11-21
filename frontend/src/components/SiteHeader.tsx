@@ -18,10 +18,9 @@ const NAV = [
   { href: '/developers', key: 'developers' },
   { href: '/repositories', key: 'repositories' },
   { href: '/libraries', key: 'libraries' },
-  { href: '/reports', key: 'reports' },
 ] as const;
 
-const DOMAIN_PAGES: string[] = ['/repositories', '/libraries', '/reports'];
+const DOMAIN_PAGES: string[] = ['/repositories', '/libraries'];
 
 function isActive(pathname: string, href: string): boolean {
   return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
@@ -32,7 +31,7 @@ function Wordmark() {
   return (
     <Link href="/" className="flex shrink-0 items-center gap-2.5 whitespace-nowrap text-foreground">
       <Logo />
-      <span className="font-display text-lg font-semibold tracking-tight">{t('name')}</span>
+      <span className="font-mono text-[15px] font-semibold tracking-tight">{t('name')}</span>
     </Link>
   );
 }

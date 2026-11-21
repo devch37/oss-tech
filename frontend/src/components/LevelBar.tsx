@@ -13,6 +13,8 @@ interface LevelBarProps {
   levels: LevelCounts;
   /** 범례(등급 이름과 개수)를 막대 아래에 보여줄지 */
   legend?: boolean;
+  /** 좁은 칸(작은 카드)에서 범례를 항상 2열로 */
+  compact?: boolean;
   className?: string;
 }
 
@@ -20,7 +22,7 @@ interface LevelBarProps {
  * 활동 등급 분포 — 한 줄짜리 누적 막대. 앰버의 농도가 진할수록 더 활발하다.
  * 색만으로 구분하지 않도록 범례에 등급 이름과 개수를 함께 적는다.
  */
-export function LevelBar({ levels, legend = true, className }: LevelBarProps) {
+export function LevelBar({ levels, legend = true, compact = false, className }: LevelBarProps) {
   const t = useTranslations('grades');
   const total = levels.s + levels.a + levels.b + levels.c;
 
@@ -37,7 +39,7 @@ export function LevelBar({ levels, legend = true, className }: LevelBarProps) {
           ))}
       </div>
       {legend && (
-        <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-4">
+        <ul className={cn('grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm', !compact && 'sm:grid-cols-4')}>
           {SEGMENTS.map((seg) => (
             <li key={seg.key} className="flex items-center gap-2">
               <span aria-hidden="true" className={cn('h-2.5 w-2.5 shrink-0 rounded-sm', seg.className)} />

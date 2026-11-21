@@ -18,6 +18,7 @@ const config: Config = {
         // 영문은 Instrument Sans / Bricolage, 한글 글리프는 자동으로 Noto Sans KR로 폴백
         sans: ['var(--font-body)', 'var(--font-ko)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['var(--font-display)', 'var(--font-ko)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -59,6 +60,11 @@ const config: Config = {
           ink: 'hsl(var(--signal-ink))', // 텍스트로 쓸 때 (대비 확보)
         },
         sea: 'hsl(var(--sea))',
+        // 상승·"뜨는 중"을 뜻하는 초록 (GitHub 의 기여 그래프 색)
+        trend: {
+          DEFAULT: 'hsl(var(--trend))',
+          ink: 'hsl(var(--trend-ink))',
+        },
         brick: 'hsl(var(--brick))',
       },
       borderRadius: {
@@ -67,6 +73,9 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
+        ticker: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
+        caret: { '0%, 49%': { opacity: '1' }, '50%, 100%': { opacity: '0' } },
+        pulseRing: { '0%': { transform: 'scale(0.8)', opacity: '0.7' }, '100%': { transform: 'scale(2.2)', opacity: '0' } },
         'accordion-down': {
           from: { height: '0' },
           to: { height: 'var(--radix-accordion-content-height)' },
@@ -77,6 +86,9 @@ const config: Config = {
         },
       },
       animation: {
+        ticker: 'ticker 60s linear infinite',
+        caret: 'caret 1.1s steps(1) infinite',
+        pulseRing: 'pulseRing 1.8s ease-out infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },

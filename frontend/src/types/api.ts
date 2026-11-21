@@ -69,25 +69,6 @@ export interface Repository {
   description?: string | null;
 }
 
-// ─── Report ───────────────────────────────────────────────────────────────────
-
-/** GET /api/v1/reports → ReportMetaDto */
-export interface ReportMeta {
-  id: number;
-  domain: string;
-  reportMonth: string; // "YYYY-MM"
-  language: ReportLanguage;
-  generatedAt: string; // ISO 8601
-}
-
-/** 백엔드 ReportLanguage.code */
-export type ReportLanguage = 'en' | 'ko';
-
-/** GET /api/v1/reports/{id} → MonthlyReportDto */
-export interface MonthlyReport extends ReportMeta {
-  content: string; // Markdown 전문
-}
-
 // ─── Overview ─────────────────────────────────────────────────────────────────
 
 /** 활동 등급별 레포 수 (S 매우 활발 · A 활발 · B 보통 · C 낮음) */
@@ -157,15 +138,25 @@ export interface TopDeveloper {
   bio: string | null;
   followers: number;
   publicRepos: number;
+  /** 프로필에 적어 둔 지역·소속 (없을 수 있음) */
+  location?: string | null;
+  company?: string | null;
 }
 
 /** GET /api/v1/trends → TrendsDto */
 export interface Trends {
   /** 마지막 수집 시각 (UTC). 한 번도 수집하지 않았으면 null */
   generatedAt: string | null;
-  newRepos: { week: TrendRepo[]; month: TrendRepo[] };
+  /** allTime: 기간 제한 없이 지금 스타가 가장 많은 프로젝트 (예전 스냅샷에는 없을 수 있음) */
+  newRepos: { week: TrendRepo[]; month: TrendRepo[]; allTime?: TrendRepo[] };
+  /** 최근 30일 기준 언어 순위 (이전 형식 호환) */
   languages: LanguageTrend[];
+  /** 기간별 언어 순위 */
+  languagePeriods?: { week: LanguageTrend[]; month: LanguageTrend[]; allTime: LanguageTrend[] };
+  /** 최근 30일 기준 뜨는 사람·팀 (이전 형식 호환) */
   risingDevelopers: RisingDeveloper[];
+  /** 기간별 뜨는 사람·팀 */
+  risingByPeriod?: { week: RisingDeveloper[]; month: RisingDeveloper[]; allTime: RisingDeveloper[] };
   topDevelopers: TopDeveloper[];
   /** 스타가 많고 최근에도 활발한 프로젝트 */
   popularNow: Repository[];

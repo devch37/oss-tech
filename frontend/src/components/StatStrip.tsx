@@ -12,7 +12,7 @@ interface StatItem {
  */
 export function StatStrip({ items }: { items: StatItem[] }) {
   return (
-    <dl className="grid grid-cols-2 gap-y-6 border-y border-border py-6 sm:grid-cols-4">
+    <dl className={cn('grid grid-cols-2 gap-y-5 border-y border-border/70 py-5', items.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-4')}>
       {items.map((item, i) => (
         <div
           key={item.label}
@@ -22,7 +22,7 @@ export function StatStrip({ items }: { items: StatItem[] }) {
             i > 0 ? 'sm:border-l sm:border-border sm:pl-6' : 'sm:pl-0',
           )}
         >
-          <dd className="font-display text-3xl font-semibold tabular-nums tracking-tight sm:text-4xl">{item.value}</dd>
+          <dd className="font-mono text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{item.value}</dd>
           <dt className="mt-1 text-sm text-muted-foreground">{item.label}</dt>
         </div>
       ))}

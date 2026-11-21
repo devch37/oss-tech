@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { isLocale, routing } from '@/i18n/routing';
 import { getTrends } from '@/lib/api-client';
 import { buildAlternates } from '@/lib/seo';
+import { parsePeriod } from '@/lib/trend-periods';
 import { ErrorCard } from '@/components/ErrorBoundary';
 import { NewReposBoard } from '@/components/NewReposBoard';
 import { PageHeader } from '@/components/PageHeader';
@@ -40,8 +41,9 @@ export default async function TrendingPage({ params, searchParams }: Props) {
         <NewReposBoard
           week={trends.newRepos.week}
           month={trends.newRepos.month}
-          limit={20}
-          initialPeriod={searchParams.period === 'month' ? 'month' : 'week'}
+          allTime={trends.newRepos.allTime}
+          pageSize={10}
+          initialPeriod={parsePeriod(searchParams.period)}
         />
       ) : (
         <ErrorCard message={`${th('error.title')}. ${th('error.description')}`} />

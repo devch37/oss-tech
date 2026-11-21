@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { isLocale, routing } from '@/i18n/routing';
 import { getTrends } from '@/lib/api-client';
 import { buildAlternates } from '@/lib/seo';
+import { risingByPeriod } from '@/lib/trend-periods';
 import { DeveloperBoard } from '@/components/DeveloperBoard';
 import { ErrorCard } from '@/components/ErrorBoundary';
 import { PageHeader } from '@/components/PageHeader';
@@ -36,7 +37,7 @@ export default async function DevelopersPage({ params }: Props) {
       <PageHeader title={t('developers.title')} description={t('developers.description')} />
       <RuleNote>{t('developers.rule')}</RuleNote>
       {trends ? (
-        <DeveloperBoard rising={trends.risingDevelopers} followed={trends.topDevelopers} limit={20} />
+        <DeveloperBoard risingPeriods={risingByPeriod(trends)} followed={trends.topDevelopers} limit={100} pageSize={10} glance />
       ) : (
         <ErrorCard message={`${th('error.title')}. ${th('error.description')}`} />
       )}

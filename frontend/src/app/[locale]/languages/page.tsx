@@ -3,13 +3,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { isLocale, routing } from '@/i18n/routing';
 import { getTrends } from '@/lib/api-client';
 import { buildAlternates } from '@/lib/seo';
+import { languagesByPeriod, parsePeriod } from '@/lib/trend-periods';
 import { ErrorCard } from '@/components/ErrorBoundary';
-import { LanguageRanking } from '@/components/LanguageRanking';
+import { LanguageExplorer } from '@/components/LanguageExplorer';
 import { PageHeader } from '@/components/PageHeader';
-import { RuleNote } from '@/components/RuleNote';
 
 interface Props {
   params: { locale: string };
+  searchParams: { period?: string };
 }
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: t('languagesTitle'), alternates: buildAlternates('/languages', locale) };
 }
 
-export default async function LanguagesPage({ params }: Props) {
+export default async function LanguagesPage({ params, searchParams }: Props) {
   if (!isLocale(params.locale)) return null;
   const locale = params.locale;
   setRequestLocale(locale);
@@ -32,13 +33,10 @@ export default async function LanguagesPage({ params }: Props) {
   ]);
 
   return (
-    <div className="space-y-10 pb-6">
+    <div className="space-y-8 pb-6">
       <PageHeader title={t('languages.title')} description={t('languages.description')} />
-      <RuleNote>{t('languages.rule')}</RuleNote>
-      {trends && trends.languages.length > 0 ? (
-        <LanguageRanking languages={trends.languages} />
-      ) : trends ? (
-        <p className="rounded-lg border border-dashed border-border p-6 text-base text-muted-foreground">{t('languages.empty')}</p>
+      {trends ? (
+        <LanguageExplorer periods={languagesByPeriod(trends)} initialPeriod={parsePeriod(searchParams.period, 'month')} />
       ) : (
         <ErrorCard message={`${th('error.title')}. ${th('error.description')}`} />
       )}

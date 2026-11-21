@@ -127,32 +127,6 @@ export function lastMonths(n: number): string[] {
   return Array.from({ length: n }, (_, i) => toYearMonth(new Date(now.getFullYear(), now.getMonth() - i, 1)));
 }
 
-/** 마크다운 본문에서 제목/코드/링크 문법을 걷어낸 미리보기 텍스트 */
-export function extractPreview(markdown: string, maxLength = 180): string {
-  const text = markdown
-    .replace(/^#{1,6}\s+.+$/gm, '')
-    .replace(/!\[.*?\]\(.*?\)/g, '')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/`[^`]+`/g, '')
-    .replace(/^\|.*\|$/gm, '')
-    .replace(/[*_~>|]/g, '')
-    .replace(/\s*\n+\s*/g, ' ')
-    .trim();
-
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).replace(/\s\S*$/, '') + '…';
-}
-
-/** 마크다운에서 첫 번째 본문 문단만 뽑아 미리보기로 쓴다 (제목·표만 있는 블록은 건너뜀) */
-export function extractFirstParagraph(markdown: string, maxLength = 220): string {
-  for (const block of markdown.split(/\n{2,}/)) {
-    const preview = extractPreview(block, maxLength);
-    if (preview) return preview;
-  }
-  return '';
-}
-
 /** ISO 8601 시각이 오늘(UTC)로부터 며칠 전인지 (오늘이면 0). 읽을 수 없으면 null. */
 export function daysSince(iso: string | null | undefined, now: Date = new Date()): number | null {
   if (!iso) return null;
@@ -161,4 +135,16 @@ export function daysSince(iso: string | null | undefined, now: Date = new Date()
   const day = 24 * 60 * 60 * 1000;
   const startOf = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
   return Math.max(0, Math.round((startOf(now) - startOf(then)) / day));
+}
+
+/** 지금으로부터 얼마나 지났는지 ("3시간 전", "3 hours ago") — 데이터가 얼마나 신선한지 보여 주는 신뢰 신호 */
+export function formatRelative(iso: string, locale: string, now: Date = new Date()): string {
+  const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) return iso;
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const minutes = Math.max(1, Math.round((now.getTime() - then.getTime()) / 60000));
+  if (minutes < 60) return rtf.format(-minutes, 'minute');
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) return rtf.format(-hours, 'hour');
+  return rtf.format(-Math.round(hours / 24), 'day');
 }

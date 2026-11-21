@@ -7,6 +7,7 @@ import { resolveDomain } from '@/lib/domains';
 import { buildAlternates } from '@/lib/seo';
 import { formatMonth, lastMonths } from '@/lib/utils';
 import { DomainTabs } from '@/components/DomainTabs';
+import { LibraryGlance } from '@/components/LibraryGlance';
 import { PageHeader } from '@/components/PageHeader';
 import { LibraryListClient } from './LibraryListClient';
 
@@ -49,6 +50,8 @@ export default async function LibrariesPage({ params, searchParams }: Props) {
       </Suspense>
 
       <PageHeader title={t('title')} description={t('description', { domain: td(domain) })} />
+
+      <LibraryGlance locale={locale} domain={domain} libraries={data?.content ?? []} />
 
       <LibraryListClient
         libraries={data?.content ?? []}

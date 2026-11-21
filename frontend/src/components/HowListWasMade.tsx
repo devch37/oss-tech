@@ -6,11 +6,11 @@ const POINTS = ['source', 'excluded', 'activity', 'fields', 'fresh'] as const;
 export function HowListWasMade() {
   const t = useTranslations('repositories.how');
   return (
-    <details className="rounded-2xl border border-border bg-card">
-      <summary className="cursor-pointer list-none px-5 py-4 text-base font-medium marker:content-none [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-xl border border-border bg-card/60 open:bg-card">
+      <summary className="flex cursor-pointer list-none items-center px-4 py-3 text-sm font-medium marker:content-none [&::-webkit-details-marker]:hidden">
         {t('summary')}
       </summary>
-      <ul className="list-disc space-y-3 border-t border-border px-5 py-5 pl-10 text-base leading-relaxed text-muted-foreground">
+      <ul className="list-disc space-y-2 border-t border-border px-4 py-4 pl-9 text-sm leading-relaxed text-muted-foreground">
         {POINTS.map((key) => (
           <li key={key}>{t(key)}</li>
         ))}

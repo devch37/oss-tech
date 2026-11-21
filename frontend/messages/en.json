@@ -12,7 +12,6 @@
     "home": "Trending",
     "libraries": "Libraries",
     "repositories": "Search",
-    "reports": "Reports",
     "openMenu": "Open menu",
     "skipToContent": "Skip to content",
     "close": "Close menu",
@@ -51,7 +50,8 @@
     "more": "More pages",
     "pagination": "Pagination",
     "previousPage": "Previous page",
-    "nextPage": "Next page"
+    "nextPage": "Next page",
+    "range": "{from}–{to} of {total}"
   },
   "growth": {
     "up": "Up {value}",
@@ -103,12 +103,6 @@
     "radar": {
       "title": "Every project on one map",
       "description": "Each dot is a project. The further right, the more stars. The higher, the more work in the last 30 days."
-    },
-    "report": {
-      "title": "Latest report",
-      "read": "Read the full report",
-      "fallback": "Not available in English yet. Showing the Korean version.",
-      "empty": "No report for {domain} yet. Reports are generated on the 1st of each month."
     },
     "empty": {
       "title": "No data for {domain} yet",
@@ -172,7 +166,16 @@
     },
     "noMatch": "No library matches “{query}”.",
     "error": "Couldn't load libraries. Make sure the backend is running, then reload.",
-    "new": "New"
+    "new": "New",
+    "glance": {
+      "analyzed": "Libraries analyzed",
+      "leader": "Most used library",
+      "leaderUsed": "Projects using it",
+      "newThisMonth": "New this month",
+      "chartTitle": "Which libraries do these projects use most?",
+      "chartHint": "Top 10, by number of projects",
+      "projects": "{count, plural, one {# project} other {# projects}}"
+    }
   },
   "libraryDetail": {
     "back": "All libraries",
@@ -258,38 +261,11 @@
     "empty": {
       "title": "No projects yet",
       "description": "Projects appear after the first crawl. Start one and reload the page."
-    }
-  },
-  "reports": {
-    "title": "Reports",
-    "description": "A monthly summary of what changed in each domain, built from the library data.",
-    "generatedOn": "Generated {date}",
-    "read": "Read report",
-    "cardTitle": "{domain} trends, {month}",
-    "fallback": "There are no English reports for {domain} yet. Showing Korean reports instead.",
-    "empty": {
-      "title": "No reports for {domain} yet",
-      "description": "Reports are generated on the 1st of each month. To create one now, call the API:"
     },
-    "error": "Couldn't load reports. Make sure the backend is running, then reload.",
-    "previewUnavailable": "Preview unavailable."
-  },
-  "reportDetail": {
-    "back": "All reports",
-    "title": "{domain} trends, {month}",
-    "generated": "Generated {date}",
-    "writtenBy": "Built from {month} library data",
-    "share": "Copy link",
-    "copied": "Link copied",
-    "olderReport": "Older report",
-    "newerReport": "Newer report",
-    "noOlder": "This is the oldest report",
-    "noNewer": "This is the newest report",
-    "navLabel": "Report navigation",
-    "readIn": "Read in {language}",
-    "language": {
-      "en": "English",
-      "ko": "Korean"
+    "snapshot": {
+      "field": "By field",
+      "activity": "By activity",
+      "language": "By language"
     }
   },
   "errors": {
@@ -314,8 +290,27 @@
   "trends": {
     "hero": {
       "title": "What's hot on GitHub right now",
-      "subtitle": "New projects, popular programming languages, and the people who build them. All in one place, refreshed every day.",
-      "updated": "Last updated {date}"
+      "subtitle": "The projects, languages and people rising on GitHub. Refreshed every day, so there is always something new.",
+      "updated": "Last updated {date}",
+      "prompt": "trending --since=7d --sort=stars",
+      "updatedAgo": "Updated {relative}",
+      "board": {
+        "title": "Rising now",
+        "seeAll": "See all 100",
+        "week": "7 days",
+        "month": "30 days",
+        "all": "Any time",
+        "noVelocity": "stars",
+        "empty": "Nothing to show yet."
+      },
+      "trust": {
+        "source": "Public GitHub data",
+        "daily": "Refreshed daily",
+        "tracked": "{count} projects tracked",
+        "method": "How we rank"
+      },
+      "scroll": "More below",
+      "jumpLabel": "Jump to a section"
     },
     "explainer": {
       "summary": "New to GitHub? Tap here to see what these words mean",
@@ -337,21 +332,24 @@
       }
     },
     "hot": {
-      "title": "Hottest new projects",
-      "description": "Projects started recently that already have the most stars.",
-      "viewBy": "Started in",
-      "week": "The last 7 days",
-      "month": "The last 30 days",
+      "title": "Most-starred projects",
+      "description": "Stars are likes, so these are the projects people like the most. Pick how old the projects can be.",
+      "viewBy": "Project age",
+      "week": "Started in the last 7 days",
+      "month": "Started in the last 30 days",
       "viewAll": "See the full list",
       "empty": "No new projects to show yet.",
-      "rule": "Projects started in the period you pick, in any language, with the most stars first. Lists, courses and tutorials are left out."
+      "rule": "Projects with the most stars right now. Choose a period to see only projects that started recently, or choose Any time to include older ones. Lists, courses and tutorials are left out.",
+      "all": "Any time",
+      "weekShort": "Last 7 days",
+      "monthShort": "Last 30 days"
     },
     "loved": {
       "title": "Favorites that are still going strong",
       "description": "Projects with lots of stars that were also updated in the last month.",
       "empty": "Nothing to show yet.",
       "rule": "The most-starred projects among the top 30 of each field that were also updated in the last 30 days.",
-      "viewAll": "Search all projects"
+      "viewAll": "See all favorites"
     },
     "languages": {
       "title": "Which programming languages are popular?",
@@ -362,11 +360,28 @@
       "viewAll": "See all languages",
       "empty": "No language data yet.",
       "share": "{percent} of the total",
-      "rule": "For each language we count the projects started in the last 30 days that have at least 50 stars."
+      "rule": "For each language we count the projects started in the last 30 days that have at least 50 stars.",
+      "glance": {
+        "ranked": "Languages ranked",
+        "total": "New popular projects (30 days)",
+        "leader": "Most popular language",
+        "top3": "Share of the top 3",
+        "chartTitle": "Which language builds the most new popular projects?",
+        "chartHint": "Share by language",
+        "others": "Others",
+        "totalWeek": "New popular projects (7 days)",
+        "totalAll": "Popular projects (1,000+ stars)"
+      },
+      "viewBy": "Period",
+      "week": "Last 7 days",
+      "month": "Last 30 days",
+      "all": "Any time",
+      "ruleWeek": "For each language we count the projects started in the last 7 days that have at least 10 stars.",
+      "ruleAll": "For each language we count every project, however old, that has more than 1,000 stars. This shows which languages have the most well-loved projects overall."
     },
     "developers": {
       "title": "People and teams to watch",
-      "description": "Who is building the hot projects, and who has the most followers.",
+      "description": "Who is building the hot projects, and who has the most followers. Up to 100 people in each list.",
       "viewBy": "Show",
       "rising": "Behind the hot projects",
       "followed": "Most followed",
@@ -379,7 +394,22 @@
       "followersHelp": "Followers are people who keep up with this developer's work.",
       "viewAll": "See everyone",
       "empty": "No developers to show yet.",
-      "rule": "Behind the hot projects: the owners of the hottest new projects. Most followed: people with over 5,000 followers who share public projects."
+      "rule": "Behind the hot projects: the owners of the most-starred projects for the age you pick (last 7 days, last 30 days, or any time). Most followed: people with over 5,000 followers who share public projects.",
+      "range": "Showing {from} to {to} of {total}",
+      "topProject": "Top project",
+      "glance": {
+        "risingTitle": "Who is behind the hottest new projects?",
+        "risingHint": "Top 10 by total stars",
+        "followedTitle": "Who has the most followers?",
+        "followedHint": "Top 10 by followers",
+        "people": "People and teams",
+        "teams": "Teams or companies",
+        "hotStars": "Stars on their hot projects",
+        "ranked": "People ranked",
+        "followersTotal": "Followers in total",
+        "mostFollowed": "Most followed"
+      },
+      "period": "Project age"
     },
     "fields": {
       "title": "Browse by field",
@@ -393,12 +423,16 @@
       "startedDaysAgo": "{days, plural, one {Started 1 day ago} other {Started # days ago}}",
       "noDescription": "No description yet.",
       "rank": "Number {rank}",
-      "language": "Language"
+      "language": "Language",
+      "startedMonthsAgo": "{months, plural, one {Started 1 month ago} other {Started # months ago}}",
+      "startedYearsAgo": "{years, plural, one {Started 1 year ago} other {Started # years ago}}",
+      "perDay": "+{count}/day",
+      "perDayHelp": "Stars earned per day on average since it started"
     },
     "how": {
       "summary": "How do we decide these rankings?",
       "intro": "GitHub has no official trending list, so we build ours from GitHub's public search. Everything is updated once a day.",
-      "newProjects": "Hottest new projects: projects started in the last 7 or 30 days, with the most stars first.",
+      "newProjects": "Most-starred projects: the projects with the most stars right now. You can limit them to ones started in the last 7 or 30 days, or look at all of them.",
       "loved": "Favorites: projects with the most stars that were also updated in the last 30 days.",
       "languages": "Languages: how many projects started in the last 30 days earned at least 50 stars, for each language. The percentage is each language's share among the languages shown.",
       "developers": "People and teams: the owners of the hot new projects, and the developers with the most followers."
@@ -409,12 +443,32 @@
       "hint": "If it stays empty, make sure the backend is running and has a GitHub token."
     },
     "pages": {
-      "trendingTitle": "Hottest new projects",
+      "trendingTitle": "Most-starred projects",
       "languagesTitle": "Programming languages",
       "developersTitle": "People and teams"
     },
     "rule": {
       "label": "How this list is chosen"
+    },
+    "ticker": {
+      "label": "Projects gaining stars fastest right now",
+      "perDay": "+{count}/day"
+    },
+    "facts": {
+      "riser": "Fastest riser this week",
+      "day": "day",
+      "language": "Most popular language",
+      "languageShare": "{percent} of new popular projects",
+      "developer": "Most followed developer (followers)",
+      "projects": "Stars across tracked projects",
+      "projectsSub": "{count} popular projects"
+    },
+    "jump": {
+      "projects": "Projects",
+      "languages": "Languages",
+      "people": "People",
+      "fields": "Fields",
+      "search": "Search"
     }
   }
 }

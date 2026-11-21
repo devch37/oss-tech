@@ -33,7 +33,7 @@ interface LibraryListClientProps {
   fetchFailed: boolean;
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export function LibraryListClient({
   libraries,
